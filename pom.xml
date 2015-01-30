@@ -1,0 +1,80 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.pivotal</groupId>
+  <artifactId>hawq-plugin</artifactId>
+  <version>1.0</version>
+  <name>hawq-plugin</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+    <base.dir>/var/lib/ambari-server/resources/stacks</base.dir>
+    <stack>PHD</stack>
+    <version>3.0.0.0</version>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>rpm-maven-plugin</artifactId>
+        <version>2.0.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>rpm</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <copyright>2012-2014, Pivotal Software, Inc.</copyright>
+          <group>io.pivotal</group>
+          <description>Hawq plugin contains Ambari's stack definition for Hawq service. When installed, Ambari should be able to support even Hawq as a service.</description>
+          <requires>
+            <!--  include version constraint   -->
+           <!-- <require>ambari-server</require>-->
+          </requires>
+          <postinstallScriptlet>
+            <scriptFile>src/main/package/rpm/postinstall.sh</scriptFile>
+            <fileEncoding>utf-8</fileEncoding>
+          </postinstallScriptlet>
+          <preremoveScriptlet>
+            <scriptFile>src/main/package/rpm/preremove.sh</scriptFile>
+            <fileEncoding>utf-8</fileEncoding>
+          </preremoveScriptlet>
+          <mappings>
+            <mapping>
+              <directory>${base.dir}/${stack}/${version}/services</directory>
+              <sources>
+                <source>
+                  <location>src/main/resources/services</location>
+                </source>
+              </sources>
+            </mapping>
+          </mappings>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>phd-server</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <stack>PHD</stack>
+        <version>3.0.0.0</version>
+      </properties>
+    </profile>
+    <profile>
+      <id>hdp-server</id>
+      <properties>
+        <stack>HDP</stack>
+        <version>2.1</version>
+      </properties>
+    </profile>
+  </profiles>
+</project>
+
