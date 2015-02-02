@@ -11,6 +11,7 @@
     <base.dir>/var/lib/ambari-server/resources/stacks</base.dir>
     <stack>PHD</stack>
     <version>3.0.0.0</version>
+    <release>1</release>
   </properties>
 
   <build>
@@ -27,9 +28,10 @@
           </execution>
         </executions>
         <configuration>
-          <copyright>2012-2014, Pivotal Software, Inc.</copyright>
+          <copyright>2012-2015, Pivotal Software, Inc.</copyright>
           <group>io.pivotal</group>
           <description>Hawq plugin contains Ambari's stack definition for Hawq service. When installed, Ambari should be able to support even Hawq as a service.</description>
+          <release>${release}</release>
           <requires>
             <!--  include version constraint   -->
            <!-- <require>ambari-server</require>-->
