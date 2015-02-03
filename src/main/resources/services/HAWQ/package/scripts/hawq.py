@@ -1,32 +1,40 @@
-"""
-Licensed to the Apache Software Foundation (ASF) under one
-or more contributor license agreements.  See the NOTICE file
-distributed with this work for additional information
-regarding copyright ownership.  The ASF licenses this file
-to you under the Apache License, Version 2.0 (the
-"License"); you may not use this file except in compliance
-with the License.  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-"""
 from resource_management import *
+from Hardware import Hardware
+from verifications import Verifications
+import specs
 import os
 import pwd
 
 def hawq_user_exists():
-    import params
-    try:
-        pwd.getpwnam(params.hawq_user)
-        return True
-    except KeyError:
-        return False
+  import params
+  try:
+      pwd.getpwnam(params.hawq_user)
+      return True
+  except KeyError:
+      return False
+
+def system_verification(env, component):
+  import params
+  if params.skip_preinstall_verification:
+    return
+
+  hardware = Hardware().get()
+  Logger.info("Fluffy: " + str(hardware))
+  requirements = specs.requirements
+  verify = Verifications(hardware, requirements)
+
+  if component == "master":
+    verify.master_preinstall_checks()
+  if component == "segment":
+    verify.segment_preinstall_checks()
+
+  if verify.get_messages()>0:
+    message = "Host system verification failed:\n\n"
+    message += "(NOTE: To skip preinstall check (e.g. installing on test cluster), "
+    message += "set skip.preinstall.verification to TRUE in 'Custom hawq-site' at "
+    message += "the configuration step during the install.)\n\n"
+    message += '\n'.join(verify.get_messages())
+    raise Fail(message)
 
 def common_setup(env):
   import params
