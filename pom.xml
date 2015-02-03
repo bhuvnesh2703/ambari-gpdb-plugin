@@ -61,7 +61,7 @@
 
   <profiles>
     <profile>
-      <id>phd-server</id>
+      <id>phd</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
@@ -71,7 +71,7 @@
       </properties>
     </profile>
     <profile>
-      <id>hdp-server</id>
+      <id>hdp</id>
       <properties>
         <stack>HDP</stack>
         <version>2.1</version>
