@@ -47,7 +47,7 @@
 
   <property>
     <name>skip.preinstall.verification</name>
-    <value>false</value>
+    <value>true</value>
     <description>Set to TRUE if you would like to skip preinstall cluster verification on system parameters and settings, e.g. memory, disk, OS, and port requirements.</description>
   </property>
 </configuration>
