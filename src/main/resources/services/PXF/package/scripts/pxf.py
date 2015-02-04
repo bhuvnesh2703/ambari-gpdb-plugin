@@ -1,22 +1,3 @@
-"""
-Licensed to the Apache Software Foundation (ASF) under one
-or more contributor license agreements.  See the NOTICE file
-distributed with this work for additional information
-regarding copyright ownership.  The ASF licenses this file
-to you under the Apache License, Version 2.0 (the
-"License"); you may not use this file except in compliance
-with the License.  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-"""
-
 from resource_management import *
 
 def init(env):
@@ -26,6 +7,14 @@ def init(env):
 
   File("{0}/pxf-private.classpath".format(params.pxf_conf_dir),
        content=Template("pxf-private-classpath.j2"))
+
+  File("{0}/pxf-site.xml".format(params.pxf_conf_dir),
+     content=Template("pxf-site.j2"))
+
+  if params.security_enabled:
+    command  = "chown %s:%s %s &&" % (params.pxf_user, params.user_group, params.pxf_keytab_file)
+    command += "chmod 440 %s" % (params.pxf_keytab_file)
+    Execute(command, timeout=600)
 
   command = "service pxf-service init"
   Execute(command, timeout=600)
@@ -45,4 +34,22 @@ def stop(env):
 
 def status(env):
   import params
+  import httplib
+  import re
+  # check tcServer process
   check_process_status(params.tcserver_pid_file)
+
+  # check PXF web service
+  h=httplib.HTTPConnection('localhost', 51200)
+  try:
+    h.request("GET","/pxf/v1")
+    response = h.getresponse()
+    data = response.read()
+    obj = re.match(r'.*Wrong version v[0-9]+, supported version is v[0-9]+', data)
+    if not obj:
+      Logger.debug("PXF service is failing with message:\n{0}".format(data))
+      raise ComponentIsNotRunning()
+  except:
+    Logger.debug("Connection failed to PXF service at localhost:51200")
+    raise ComponentIsNotRunning()
+    
