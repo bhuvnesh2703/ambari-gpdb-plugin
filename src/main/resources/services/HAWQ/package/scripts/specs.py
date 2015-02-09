@@ -12,6 +12,10 @@ requirements = {
   "minimum_disk" : {
     "value"   : 2*1024*1024, # value in KB
     "message" : "Disk requirements: 2GB per host for HAWQ installation"
+  },
+  "minimum_version" : {
+    "value"   : "6.4",
+    "message" : "OS version requirements: RedHat/Centos 6.4 or above"
   }
 }
 

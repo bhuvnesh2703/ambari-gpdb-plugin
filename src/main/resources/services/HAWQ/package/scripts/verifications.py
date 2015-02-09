@@ -14,6 +14,7 @@ class Verifications:
 
     def common_preinstall_checks(self):
         self.check_memory()
+        self.check_osversion()
         self.check_osparams()
 
     def check_memory(self):
@@ -33,6 +34,21 @@ class Verifications:
                 message = osparams.get(osparam).get("message")
                 message += " - System value: %s" % actual
                 self.messages.append(message)
+
+    def check_osversion(self):
+        import re
+        def vcmp(version1, version2):
+            def normalize(v):
+                return [int(x) for x in re.sub(r'(\.0+)*$','', v).split(".")]
+            return cmp(normalize(version1), normalize(version2))
+        required = self.requirements.get("minimum_version").get("value")
+        actual   = self.hardware.get("osversion")
+        if not actual:
+            return
+        if vcmp(actual, required) == -1: # actual < required
+            message = self.requirements.get("minimum_version").get("message")
+            message += " - System version: %s" % actual
+            self.messages.append(message)
 
     def check_disk_segment(self):
         required = self.requirements.get("minimum_disk").get("value")

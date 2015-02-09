@@ -24,6 +24,7 @@ class Hardware:
     self.hardware['mounts_hawq'] = osdisks_hawq
     osparams = self.osparams()
     self.hardware['osparams'] = osparams
+    self.hardware['osversion'] = self.osversion()
     
     otherInfo = Facter().facterInfo()
     self.hardware.update(otherInfo)
@@ -105,6 +106,14 @@ class Hardware:
       param, val = l.split(" = ")
       osparams[param] = val
     return osparams
+
+  @staticmethod
+  def osversion():
+    version = subprocess.Popen("cat /etc/redhat-release", shell=True, stdout=subprocess.PIPE)
+    versiondata = version.communicate()[0]
+    if not versiondata:
+      return ''
+    return versiondata.split(' ')[2]
   ############## HAWQ (END) ################
 
 
