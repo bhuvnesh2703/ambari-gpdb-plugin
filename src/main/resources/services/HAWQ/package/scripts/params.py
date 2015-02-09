@@ -25,6 +25,7 @@ if config["commandType"] == 'EXECUTION_COMMAND':
   if security_enabled:
     _nn_principal_name = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
     _nn_principal_name = _nn_principal_name.replace('_HOST', hostname.lower())
+    # e.g. nn/c6401.ambari.apache.org@EXAMPLE.COM
 
   if config["clusterHostInfo"]["hawqstandby_hosts"] and len(config["clusterHostInfo"]["hawqstandby_hosts"]) > 0:
       hawq_standby = config["clusterHostInfo"]["hawqstandby_hosts"][0]

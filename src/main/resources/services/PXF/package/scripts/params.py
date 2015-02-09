@@ -13,5 +13,8 @@ pxf_keytab_file = "/etc/security/keytabs/pxf.service.keytab"
 
 if config["commandType"] == 'EXECUTION_COMMAND':
   pxf_keytab_file = config["configurations"]["pxf-site"]["pxf.keytab.file"]
+  _nn_principal_name = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
+  _pxf_principal_name = _nn_principal_name.replace('nn', 'pxf')
+  # e.g. pxf/_HOST@EXAMPLE.COM
   java_home = config["hostLevelParams"]["java_home"]
 
