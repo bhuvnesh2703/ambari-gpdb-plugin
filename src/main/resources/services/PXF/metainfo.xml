@@ -7,7 +7,7 @@
       <name>PXF</name>
       <displayName>PXF</displayName>
       <comment>Pivotal Extension Framework</comment>
-      <version>1.0.0.0</version>
+      <version>2.4.0.0</version>
       <components>
 
         <component>
@@ -49,16 +49,16 @@
                <name>vfabric-tc-server-standard.noarch</name>
              </package>
              <package>
-               <name>pxf-service.noarch</name>
+               <name>pxf-service-2.4.0.0*</name>
              </package>
              <package>
-               <name>pxf-hdfs.noarch</name>
+               <name>pxf-hdfs-2.4.0.0*</name>
              </package>
              <package>
-               <name>pxf-hbase.noarch</name>
+               <name>pxf-hbase-2.4.0.0*</name>
              </package>
              <package>
-               <name>pxf-hive.noarch</name>
+               <name>pxf-hive-2.4.0.0*</name>
              </package>
           </packages>
         </osSpecific>
