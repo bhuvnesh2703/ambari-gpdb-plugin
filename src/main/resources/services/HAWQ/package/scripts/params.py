@@ -57,6 +57,9 @@ if config["commandType"] == 'EXECUTION_COMMAND':
     if hawq_site_config.get("hawq.segments.per.node"):
       segments_per_node = int(hawq_site_config.get("hawq.segments.per.node"))
 
+    if hawq_site_config.get("hawq.master.dbid.path"):
+      hawq_master_dbid_path = hawq_site_config.get("hawq.master.dbid.path").strip()
+
     if hawq_site_config.get("hawq.temp.directory"):
       hawq_temp_directory = hawq_site_config.get("hawq.temp.directory").strip()
 

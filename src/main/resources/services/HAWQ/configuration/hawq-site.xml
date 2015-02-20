@@ -34,6 +34,12 @@
   </property>
 
   <property>
+    <name>hawq.master.dbid.path</name>
+    <value>/data/hawq/master/gpseg-1/gp_dbid</value>
+    <description>Path for HAWQ Database identifier file</description>
+  </property>
+
+  <property>
     <name>hawq.temp.directory</name>
     <value> </value>
     <description>Use as temporary filespace to store workfile cache, sort/join temp files etc. Allocation varies depending on disk storage available on system. E.g. /data11/tmp /data12/tmp ...</description>
