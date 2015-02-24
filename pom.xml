@@ -10,7 +10,7 @@
   <properties>
     <base.dir>/var/lib/ambari-server/resources/stacks</base.dir>
     <stack>PHD</stack>
-    <version>3.0.0.0</version>
+    <version>3.0</version>
     <release>1</release>
   </properties>
 
@@ -67,7 +67,7 @@
       </activation>
       <properties>
         <stack>PHD</stack>
-        <version>3.0.0.0</version>
+        <version>3.0</version>
       </properties>
     </profile>
     <profile>
