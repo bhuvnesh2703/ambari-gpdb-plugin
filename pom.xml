@@ -33,8 +33,7 @@
           <description>Hawq plugin contains Ambari's stack definition for Hawq service. When installed, Ambari should be able to support even Hawq as a service.</description>
           <release>${release}</release>
           <requires>
-            <!--  include version constraint   -->
-           <!-- <require>ambari-server</require>-->
+            <require>ambari-server &gt;= 1.7</require>
           </requires>
           <postinstallScriptlet>
             <scriptFile>src/main/package/rpm/postinstall.sh</scriptFile>
