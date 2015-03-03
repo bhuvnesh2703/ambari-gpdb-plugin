@@ -45,6 +45,13 @@ if config["commandType"] == 'EXECUTION_COMMAND':
     if hawq_site_config.get("hawq.user.password"):
       hawq_password = hawq_site_config.get("hawq.user.password").strip()
 
+    if hawq_site_config.get("hawq.master.directory"):
+      hawq_master_dir = hawq_site_config.get("hawq.master.directory").strip()
+      hawq_master_dbid_path = hawq_master_dir + '/gpseg-1/gp_dbid'
+
+    if hawq_site_config.get("hawq.data.directory"):
+      hawq_data_dir = hawq_site_config.get("hawq.data.directory").strip()
+
     if hawq_site_config.get("hawq.cluster.name"):
       hawq_cluster_name = hawq_site_config.get("hawq.cluster.name")
 

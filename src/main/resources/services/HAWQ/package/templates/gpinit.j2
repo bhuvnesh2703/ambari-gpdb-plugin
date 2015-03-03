@@ -22,7 +22,7 @@ PORT_BASE={{hawq_segment_base_port}}
 #### physical host (if multiple addresses for a host are listed in
 #### the hostfile, the number of segments will be spread evenly across
 #### the specified interface addresses).
-declare -a DATA_DIRECTORY=( {{'/data/hawq/segments '*segments_per_node}})
+declare -a DATA_DIRECTORY=( {{ (hawq_data_dir+' ') * segments_per_node}} )
 {% if hawq_temp_directory %}
 declare -a TEMP_DIRECTORY=({{hawq_temp_directory}})
 {% endif %}
@@ -32,7 +32,7 @@ MASTER_HOSTNAME={{hawq_master}}
 
 #### File system location where the master data directory
 #### will be created.w
-MASTER_DIRECTORY=/data/hawq/master
+MASTER_DIRECTORY={{hawq_master_dir}}
 
 #### Port number for the master instance.
 MASTER_PORT={{hawq_master_port}}
