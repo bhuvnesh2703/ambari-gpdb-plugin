@@ -1,4 +1,4 @@
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions.version import format_stack_version, compare_versions
 from resource_management import *
 
 config = Script.get_config()
@@ -11,25 +11,25 @@ tcserver_pid_file = "/var/gphd/pxf/pxf-service/logs/tcserver.pid"
 
 pxf_keytab_file = "/etc/security/keytabs/pxf.service.keytab"
 
+stack_name = str(config['hostLevelParams']['stack_name'])
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
-stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
+stack_version = format_stack_version(stack_version_unformatted)
 
 #hadoop params
-if stack_is_hdp22_or_further:
+if stack_name == 'HDP' and compare_versions(stack_version, '2.2') >= 0:
   hdfs_client_home = "/usr/hdp/current/hadoop-hdfs-client"
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client"
   hadoop_home = "/usr/hdp/current/hadoop-client"
   hbase_home = "/usr/hdp/current/hbase-client"
   zookeeper_home = "/usr/hdp/current/zookeeper-client"
   hive_home = "/usr/hdp/current/hive-client"
-else:
-  hdfs_client_home = "/usr/lib/hadoop-hdfs"
-  mapreduce_libs_path = "/usr/lib/hadoop-mapreduce"
-  hadoop_home = "/usr/lib/hadoop"
-  hbase_home = "/usr/lib/hbase"
-  zookeeper_home = "/usr/lib/zookeeper"
-  hive_home = "/usr/lib/hive"
+elif stack_name == 'PHD' and compare_versions(stack_version, '3.0') >= 0:
+  hdfs_client_home = "/usr/phd/current/hadoop-hdfs-client"
+  mapreduce_libs_path = "/usr/phd/current/hadoop-mapreduce-client"
+  hadoop_home = "/usr/phd/current/hadoop-client"
+  hbase_home = "/usr/phd/current/hbase-client"
+  zookeeper_home = "/usr/phd/current/zookeeper-client"
+  hive_home = "/usr/phd/current/hive-client"
 
 pxf_home = "/usr/lib/gphd/pxf"
 pxf_conf_dir = '/etc/gphd/pxf/conf'
