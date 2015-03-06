@@ -22,6 +22,17 @@ if config["commandType"] == 'EXECUTION_COMMAND':
   hawq_master   = config["clusterHostInfo"]["hawqmaster_hosts"][0]
   hawq_segments = config["clusterHostInfo"]["hawqsegment_hosts"]
   hostname = dfs_url.split(':')[0]
+  
+  ha_enabled = config['configurations']['hdfs-site'].get('dfs.nameservices')
+  if ha_enabled:
+  	_nn_dfs_nameservices = config['configurations']['hdfs-site']['dfs.nameservices']
+  	_nn_nameservices_namenodes = config['configurations']['hdfs-site']['dfs.ha.namenodes.{0}'.format(_nn_dfs_nameservices)]
+  	_nn_nameservices_nodelist = _nn_nameservices_namenodes.split(',')
+  	_nn_nameservices_nn1_rpc_address = config['configurations']['hdfs-site']['dfs.namenode.rpc-address.{0}.{1}'.format(_nn_dfs_nameservices,_nn_nameservices_nodelist[0])]
+  	_nn_nameservices_nn1_http_address = config['configurations']['hdfs-site']['dfs.namenode.http-address.{0}.{1}'.format(_nn_dfs_nameservices,_nn_nameservices_nodelist[0])]
+  	_nn_nameservices_nn2_rpc_address = config['configurations']['hdfs-site']['dfs.namenode.rpc-address.{0}.{1}'.format(_nn_dfs_nameservices,_nn_nameservices_nodelist[1])]
+  	_nn_nameservices_nn2_http_address = config['configurations']['hdfs-site']['dfs.namenode.http-address.{0}.{1}'.format(_nn_dfs_nameservices,_nn_nameservices_nodelist[1])]
+  
   if security_enabled:
     _nn_principal_name = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
     _nn_principal_name = _nn_principal_name.replace('_HOST', hostname.lower())
