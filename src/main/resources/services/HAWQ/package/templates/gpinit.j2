@@ -50,8 +50,14 @@ ENCODING=UNICODE
 #### Distributed File System Informaiton
 ################################################
 
+{% if ha_enabled %}
+DFS_URL={{_nn_dfs_nameservices}}/gpsql
+{% else %}
 DFS_URL={{dfs_url}}/gpsql
+{% endif %}
+
 DFS_NAME=hdfs
+
 KERBEROS_KEYFILE={{hawq_keytab_file}}
 {% if security_enabled %}
 ENABLE_SECURE_FILESYSTEM=on

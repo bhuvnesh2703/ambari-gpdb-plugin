@@ -13,38 +13,37 @@
   		<value>{{_nn_principal_name}}</value>
 	</property>
 {% endif %}
-<!-- HA
+
+{% if ha_enabled %}
 	<property>
 		<name>dfs.nameservices</name>
-		<value>phdcluster</value>
+		<value>{{_nn_dfs_nameservices}}</value>
 	</property>
 
 	<property>
-		<name>dfs.ha.namenodes.phdcluster</name>
-		<value>nn1,nn2</value>
+		<name>dfs.ha.namenodes.{{_nn_dfs_nameservices}}</name>
+		<value>{{_nn_nameservices_namenodes}}</value>
 	</property>
-
+	
 	<property>
-		<name>dfs.namenode.rpc-address.phdcluster.nn1</name>
-		<value>mdw:9000</value>
+		<name>dfs.namenode.rpc-address.{{_nn_dfs_nameservices}}.{{_nn_nameservices_nodelist[0]}}</name>
+		<value>{{_nn_nameservices_nn1_rpc_address}}</value>
 	</property>
-
+	
 	<property>
-		<name>dfs.namenode.rpc-address.phdcluster.nn2</name>
-		<value>smdw:9000</value>
+		<name>dfs.namenode.http-address.{{_nn_dfs_nameservices}}.{{_nn_nameservices_nodelist[0]}}</name>
+		<value>{{_nn_nameservices_nn1_http_address}}</value>
 	</property>
-
+	
 	<property>
-		<name>dfs.namenode.http-address.phdcluster.nn1</name>
-		<value>mdw:50070</value>
+		<name>dfs.namenode.rpc-address.{{_nn_dfs_nameservices}}.{{_nn_nameservices_nodelist[1]}}</name>
+		<value>{{_nn_nameservices_nn2_rpc_address}}</value>
 	</property>
-
 	<property>
-		<name>dfs.namenode.http-address.phdcluster.nn2</name>
-		<value>smdw:50070</value>
+		<name>dfs.namenode.http-address.{{_nn_dfs_nameservices}}.{{_nn_nameservices_nodelist[1]}}</name>
+		<value>{{_nn_nameservices_nn2_http_address}}</value>
 	</property>
-
-HA -->
+{% endif %}
 
 	<!-- RPC client configuration -->
 	<property>
