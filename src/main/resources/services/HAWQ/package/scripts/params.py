@@ -49,7 +49,7 @@ if config["commandType"] == 'EXECUTION_COMMAND':
   segments_per_node = 2
   hawq_temp_directory = ""
   hawq_keytab_file = "/etc/security/keytabs/hawq.service.keytab"
-  skip_preinstall_verification = False
+  skip_preinstall_verification = True
 
   hawq_site_config = config["configurations"].get("hawq-site")
   if hawq_site_config:
