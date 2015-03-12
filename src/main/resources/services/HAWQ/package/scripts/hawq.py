@@ -194,3 +194,13 @@ def metrics_stop(env=None):
 def segment_configure(env=None):
   import params
   pass
+
+def try_activate_standby(env):
+  import params
+  if not params.hawq_standby:
+    raise Exception("Standby is not configured")
+
+  source = "source /usr/local/hawq/greenplum_path.sh;"
+  cmd = "gpactivatestandby -a -f -d {0}/gpseg-1".format(params.hawq_master_dir)
+  command = source + cmd
+  Execute(command, user=params.hawq_user, timeout=600)

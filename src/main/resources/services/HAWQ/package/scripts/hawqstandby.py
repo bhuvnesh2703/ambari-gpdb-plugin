@@ -24,5 +24,10 @@ class HawqStandby(Script):
     import status_params
     check_process_status(status_params.pid_hawqmaster)
 
+  def activatesstandby(self, env):
+    import params
+    env.set_params(params)
+    hawq.try_activate_standby(env)
+
 if __name__ == "__main__":
     HawqStandby().execute()
