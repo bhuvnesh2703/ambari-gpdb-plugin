@@ -34,6 +34,7 @@
           <release>${release}</release>
           <requires>
             <require>ambari-server &gt;= 1.7</require>
+            <require>python &gt;= 2.6</require>
           </requires>
           <postinstallScriptlet>
             <scriptFile>src/main/package/rpm/postinstall.sh</scriptFile>
