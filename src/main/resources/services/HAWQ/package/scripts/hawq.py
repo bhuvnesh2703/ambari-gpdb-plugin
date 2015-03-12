@@ -42,7 +42,14 @@ def set_osparams(env):
      content=Template("hawq.sysctl.conf.j2"),
      owner=params.hawq_user,
      group=params.hawq_group)
-  command = "cat %s >> /etc/sysctl.conf && sysctl -e -p" % params.hawq_sysctl_conf
+  command = "cat %s >> /etc/sysctl.conf && sysctl -e -p &&" % params.hawq_sysctl_conf
+
+  File(params.hawq_limits_conf,
+     content=Template("hawq.limits.conf.j2"),
+     owner=params.hawq_user,
+     group=params.hawq_group)
+  command += "cat %s >> /etc/security/limits.conf && ulimit -n 2900000" % params.hawq_limits_conf
+
   Execute(command, timeout=60)
 
 def common_setup(env):
