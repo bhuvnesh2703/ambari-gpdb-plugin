@@ -16,7 +16,11 @@ requirements = {
   "minimum_version" : {
     "value"   : "6.4",
     "message" : "OS version requirements: RedHat/Centos 6.4 or above"
-  }
+  },
+  "max_segments_per_node" : {
+    "value"   : 10,
+    "message" : "Number of segment processes per node cannot be greater than 10"
+  },
 }
 
 # RHEL 6.x platforms

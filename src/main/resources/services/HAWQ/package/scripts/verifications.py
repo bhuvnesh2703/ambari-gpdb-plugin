@@ -4,14 +4,20 @@ class Verifications:
         self.requirements = requirements
         self.messages = []
 
-    def master_preinstall_checks(self):
-        self.common_preinstall_checks()
-        self.check_port_conflicts()
+    def mandatory_checks(self, component):
+        if component == "master":
+            self.check_port_conflicts()
+            self.check_segment_count()
+        if component == "segment":
+            pass
 
-    def segment_preinstall_checks(self):
+    def preinstall_checks(self, component):
         self.common_preinstall_checks()
-        self.check_disk_segment()
-
+        if component == "master":
+            pass
+        if component == "segment":
+            self.check_disk_segment()
+        
     def common_preinstall_checks(self):
         self.check_memory()
         self.check_osversion()
@@ -62,14 +68,38 @@ class Verifications:
             self.messages.append(message)
 
     def check_port_conflicts(self):
-      import params
-      import subprocess
-      command = "netstat -tulpn | grep ':{0}\\b'".format(params.hawq_master_port)
-      (r,o) = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True).communicate()
-      if (len(r)):
-        # we have a conflict with the hawq master port.
-        message = "Conflict with HAWQ Master port. Either the service is already running or some other service is using port: {0}".format(params.hawq_master_port)
-        self.messages.append(message)
+        import params
+        import subprocess
+        command = "netstat -tulpn | grep ':{0}\\b'".format(params.hawq_master_port)
+        (r,o) = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True).communicate()
+        if (len(r)):
+            # we have a conflict with the hawq master port.
+            message = "Conflict with HAWQ Master port. Either the service is already running or some other service is using port: {0}".format(params.hawq_master_port)
+            self.messages.append(message)
+
+    def check_segment_count(self):
+        import params
+        required = self.requirements.get("max_segments_per_node").get("value")
+        actual   = params.segments_per_node
+        if actual > required:
+            message = self.requirements.get("max_segments_per_node").get("message")
+            self.messages.append(message)
 
     def get_messages(self):
         return self.messages
+
+    def get_notice(self):
+        notice = "Host system verification failed:\n\n"
+        notice += 'x '+'\nx '.join(self.get_messages())
+
+        notice += "\n\nPlease run the following command to delete the HAWQ service and reinstall:"
+        notice += '\n\tcurl -u USERNAME:PASSWORD -H "X-Requested-By: ambari" -X DELETE  http://AMBARI_SERVER_HOST:8080/api/v1/clusters/CLUSTER_NAME/services/HAWQ'
+        notice += '\nIf you also tried to install PXF, leaving it in an invalid state:'
+        notice += '\n\tcurl -u USERNAME:PASSWORD -H "X-Requested-By: ambari" -X DELETE  http://AMBARI_SERVER_HOST:8080/api/v1/clusters/CLUSTER_NAME/services/PXF'
+
+        notice += "\n\n(NOTE: To skip the optional preinstall checks (e.g. if you are installing "
+        notice += "on a test cluster) during your next install, set skip.preinstall.verification "
+        notice += "to TRUE in 'Advanced hawq-site' at the configuration step during the install.)"
+
+        return notice
+

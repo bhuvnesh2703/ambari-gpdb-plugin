@@ -18,22 +18,13 @@ def system_verification(env, component):
   hardware = Hardware().get()
   requirements = specs.requirements
   verify = Verifications(hardware, requirements)
-  if component == "master":
-    verify.check_port_conflicts()
+  verify.mandatory_checks(component)
 
   if not params.skip_preinstall_verification:
-    if component == "master":
-      verify.master_preinstall_checks()
-    if component == "segment":
-      verify.segment_preinstall_checks()
+    verify.preinstall_checks(component)
 
   if verify.get_messages():
-    message = "Host system verification failed:\n\n"
-    message += "(NOTE: To skip preinstall check (e.g. installing on test cluster), "
-    message += "set skip.preinstall.verification to TRUE in 'Custom hawq-site' at "
-    message += "the configuration step during the install.)\n\n"
-    message += '\n'.join(verify.get_messages())
-    raise Fail(message)
+    raise Fail( verify.get_notice() )
 
 def set_osparams(env):
   import params 
