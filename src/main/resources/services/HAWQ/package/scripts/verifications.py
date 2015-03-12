@@ -30,6 +30,9 @@ class Verifications:
         for osparam in osparams:
             required = osparams.get(osparam).get("value")
             actual   = self.hardware.get('osparams').get(osparam)
+            if osparam == "kernel.sem" or osparam == "net.ipv4.ip_local_port_range":
+                required = required.split()
+                actual   = actual.split()
             if actual != required:
                 message = osparams.get(osparam).get("message")
                 message += " - System value: %s" % actual
