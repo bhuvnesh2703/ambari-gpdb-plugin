@@ -36,6 +36,15 @@ def system_verification(env, component):
     message += '\n'.join(verify.get_messages())
     raise Fail(message)
 
+def set_osparams(env):
+  import params 
+  File(params.hawq_sysctl_conf,
+     content=Template("hawq.sysctl.conf.j2"),
+     owner=params.hawq_user,
+     group=params.hawq_group)
+  command = "cat %s >> /etc/sysctl.conf && sysctl -e -p" % params.hawq_sysctl_conf
+  Execute(command, timeout=60)
+
 def common_setup(env):
   import params
   import crypt
@@ -65,6 +74,7 @@ def common_setup(env):
                 group=params.hawq_group,
                 recursive=True)
 
+  set_osparams(env)
 
 def standby_configure(env):
     import params

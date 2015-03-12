@@ -38,13 +38,13 @@ net.ipv4.tcp_max_syn_backlog = 200000
 net.ipv4.conf.all.arp_filter = 1 
 net.ipv4.ip_local_port_range = 1025 65535 
 net.core.netdev_max_backlog = 200000 
-vm.overcommit_memory = 2
 fs.nr_open = 3000000
 kernel.threads-max = 798720
 kernel.pid_max = 798720
 # increase network
 net.core.rmem_max=2097152
 net.core.wmem_max=2097152
+vm.overcommit_memory = 2
 """
 
 osparams = {}
