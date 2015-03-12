@@ -15,20 +15,19 @@ def hawq_user_exists():
 
 def system_verification(env, component):
   import params
-  if params.skip_preinstall_verification:
-    return
-
   hardware = Hardware().get()
-  Logger.info("Fluffy: " + str(hardware))
   requirements = specs.requirements
   verify = Verifications(hardware, requirements)
-
   if component == "master":
-    verify.master_preinstall_checks()
-  if component == "segment":
-    verify.segment_preinstall_checks()
+    verify.check_port_conflicts()
 
-  if verify.get_messages()>0:
+  if not params.skip_preinstall_verification:
+    if component == "master":
+      verify.master_preinstall_checks()
+    if component == "segment":
+      verify.segment_preinstall_checks()
+
+  if verify.get_messages():
     message = "Host system verification failed:\n\n"
     message += "(NOTE: To skip preinstall check (e.g. installing on test cluster), "
     message += "set skip.preinstall.verification to TRUE in 'Custom hawq-site' at "
