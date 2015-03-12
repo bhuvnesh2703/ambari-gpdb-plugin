@@ -81,7 +81,8 @@ def common_setup(env):
                 group=params.hawq_group,
                 recursive=True)
 
-  set_osparams(env)
+  if params.set_os_parameters:
+    set_osparams(env)
 
 def standby_configure(env):
     import params

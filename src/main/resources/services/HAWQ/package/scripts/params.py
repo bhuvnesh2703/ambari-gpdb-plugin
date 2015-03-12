@@ -51,6 +51,7 @@ if config["commandType"] == 'EXECUTION_COMMAND':
   segments_per_node = 2
   hawq_temp_directory = ""
   hawq_keytab_file = "/etc/security/keytabs/hawq.service.keytab"
+  set_os_parameters = False
   skip_preinstall_verification = True
 
   hawq_site_config = config["configurations"].get("hawq-site")
@@ -85,6 +86,9 @@ if config["commandType"] == 'EXECUTION_COMMAND':
 
     if hawq_site_config.get("hawq.master.keytab.file"):
       hawq_keytab_file = hawq_site_config.get("hawq.master.keytab.file").strip()
+
+    if hawq_site_config.get("set.os.parameters"):
+      set_os_parameters = hawq_site_config.get("set.os.parameters").strip().lower() == "true"
 
     if hawq_site_config.get("skip.preinstall.verification"):
       skip_preinstall_verification = hawq_site_config.get("skip.preinstall.verification").strip().lower() == "true"
