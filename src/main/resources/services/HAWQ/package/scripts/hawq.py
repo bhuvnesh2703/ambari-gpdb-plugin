@@ -15,26 +15,41 @@ def hawq_user_exists():
 
 def system_verification(env, component):
   import params
-  if params.skip_preinstall_verification:
-    return
-
   hardware = Hardware().get()
-  Logger.info("Fluffy: " + str(hardware))
   requirements = specs.requirements
   verify = Verifications(hardware, requirements)
-
   if component == "master":
-    verify.master_preinstall_checks()
-  if component == "segment":
-    verify.segment_preinstall_checks()
+    verify.check_port_conflicts()
 
-  if verify.get_messages()>0:
+  if not params.skip_preinstall_verification:
+    if component == "master":
+      verify.master_preinstall_checks()
+    if component == "segment":
+      verify.segment_preinstall_checks()
+
+  if verify.get_messages():
     message = "Host system verification failed:\n\n"
     message += "(NOTE: To skip preinstall check (e.g. installing on test cluster), "
     message += "set skip.preinstall.verification to TRUE in 'Custom hawq-site' at "
     message += "the configuration step during the install.)\n\n"
     message += '\n'.join(verify.get_messages())
     raise Fail(message)
+
+def set_osparams(env):
+  import params 
+  File(params.hawq_sysctl_conf,
+     content=Template("hawq.sysctl.conf.j2"),
+     owner=params.hawq_user,
+     group=params.hawq_group)
+  command = "cat %s >> /etc/sysctl.conf && sysctl -e -p &&" % params.hawq_sysctl_conf
+
+  File(params.hawq_limits_conf,
+     content=Template("hawq.limits.conf.j2"),
+     owner=params.hawq_user,
+     group=params.hawq_group)
+  command += "cat %s >> /etc/security/limits.conf && ulimit -n 2900000" % params.hawq_limits_conf
+
+  Execute(command, timeout=60)
 
 def common_setup(env):
   import params
@@ -65,6 +80,8 @@ def common_setup(env):
                 group=params.hawq_group,
                 recursive=True)
 
+  if params.set_os_parameters:
+    set_osparams(env)
 
 def standby_configure(env):
     import params
