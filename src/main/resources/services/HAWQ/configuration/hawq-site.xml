@@ -41,7 +41,7 @@
 
   <property>
     <name>hawq.data.directory</name>
-    <value>/data/hawq/segment</value>
+    <value>/data/hawq/segments</value>
     <description>DATA_DIRECTORY for HAWQ configurations, catalog and metadata</description>
   </property>
 
