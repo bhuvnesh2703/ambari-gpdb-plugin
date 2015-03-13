@@ -5,6 +5,7 @@ class Verifications:
         self.messages = []
 
     def mandatory_checks(self, component):
+        self.check_hawq_user()
         if component == "master":
             self.check_port_conflicts()
             self.check_segment_count()
@@ -83,6 +84,15 @@ class Verifications:
         actual   = params.segments_per_node
         if actual > required:
             message = self.requirements.get("max_segments_per_node").get("message")
+            self.messages.append(message)
+
+    def check_hawq_user(self):
+        required = self.requirements.get("user_groups").get("value")
+        actual   = self.hardware.get("user_groups")
+        missing  = filter(lambda x: x not in actual, required)
+        if missing:
+            message = self.requirements.get("user_groups").get("message")
+            message += " - missing groups: %s" % str(missing)
             self.messages.append(message)
 
     def get_messages(self):

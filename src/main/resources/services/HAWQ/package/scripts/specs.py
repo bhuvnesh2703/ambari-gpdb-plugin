@@ -21,6 +21,10 @@ requirements = {
     "value"   : 10,
     "message" : "Number of segment processes per node cannot be greater than 10"
   },
+  "user_groups" : {
+    "value"   : ["gpadmin", "hadoop"],
+    "message" : "HAWQ user (gpadmin) must be in  groups: [gpadmin, hadoop]"
+  }
 }
 
 # RHEL 6.x platforms

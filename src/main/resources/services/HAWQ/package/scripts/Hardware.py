@@ -17,14 +17,11 @@ class Hardware:
 
   def __init__(self):
     self.hardware = {}
-    osdisks = self.osdisks()
-    self.hardware['mounts'] = osdisks
-    # Added for hawq
-    osdisks_hawq = self.osdisks_hawq()
-    self.hardware['mounts_hawq'] = osdisks_hawq
-    osparams = self.osparams()
-    self.hardware['osparams'] = osparams
-    self.hardware['osversion'] = self.osversion()
+    self.hardware['mounts']      = self.osdisks()
+    self.hardware['mounts_hawq'] = self.osdisks_hawq()
+    self.hardware['osparams']    = self.osparams()
+    self.hardware['osversion']   = self.osversion()
+    self.hardware['user_groups'] = self.groups()
     
     otherInfo = Facter().facterInfo()
     self.hardware.update(otherInfo)
@@ -114,6 +111,13 @@ class Hardware:
     if not versiondata:
       return ''
     return versiondata.split(' ')[2]
+
+  @staticmethod
+  def groups():
+    import params
+    groups = subprocess.Popen("groups %s" % params.hawq_user, shell=True, stdout=subprocess.PIPE)
+    groupsdata = groups.communicate()[0]
+    return groupsdata.split(':')[1].split()
   ############## HAWQ (END) ################
 
 
