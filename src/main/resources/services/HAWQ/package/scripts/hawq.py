@@ -2,8 +2,22 @@ from resource_management import *
 from Hardware import Hardware
 from verifications import Verifications
 import specs
+import shlex
 import os
+import subprocess
 import pwd
+
+def verify_segments_state(env):
+  import params
+  env.set_params(params)
+  command = "/usr/local/hawq//bin/gpstate -t -d /data/master/gpseg-1/"
+  (retcode, out, err) = subprocess_command_with_results(command)
+
+  if retcode:
+    raise Exception("gpstate command returned non-zero result: {0}. Out: {1} Error: {2}".format(retcode, out, err))
+
+  if [status_line for status_line in out.split('\n') if (status_line.startswith('gpseg') and status_line.split(" ")[1 ] == 'd')]:
+    raise Exception("Service check detected that some of the HAWQ segments are down. run 'gpstate -t' on master for more info")
 
 def hawq_user_exists():
   import params
@@ -195,3 +209,14 @@ def try_activate_standby(env):
   cmd = "gpactivatestandby -a -f -d {0}/gpseg-1".format(params.hawq_master_dir)
   command = source + cmd
   Execute(command, user=params.hawq_user, timeout=600)
+
+def subprocess_command_with_results(cmd):
+  if type(cmd) == str:
+    cmd = shlex.split(cmd)
+  process = subprocess.Popen(cmd,
+                             stdout=subprocess.PIPE,
+                             stdin=subprocess.PIPE,
+                             stderr=subprocess.PIPE
+  )
+  (stdoutdata, stderrdata) = process.communicate()
+  return process.returncode, stdoutdata, stderrdata

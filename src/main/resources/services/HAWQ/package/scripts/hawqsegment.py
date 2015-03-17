@@ -15,10 +15,10 @@ class HawqSegment(Script):
     hawq.system_verification(env, "segment")
 
   def start(self, env):
-    hawq.metrics_start(env)
+    pass
     
   def stop(self, env):
-    hawq.metrics_stop(env)
+    pass
 
   def status(self, env):
     import status_params

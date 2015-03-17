@@ -109,9 +109,6 @@
             <package>
               <name>hawq-1.3.0.0*</name>
             </package>
-            <package>
-              <name>python-psycopg2</name>
-            </package>
           </packages>
         </osSpecific>
       </osSpecifics>
