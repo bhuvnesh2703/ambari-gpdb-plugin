@@ -2,7 +2,6 @@ from resource_management import *
 from Hardware import Hardware
 from verifications import Verifications
 import specs
-import shlex
 import os
 import subprocess
 import pwd
@@ -10,7 +9,7 @@ import pwd
 def verify_segments_state(env):
   import params
   env.set_params(params)
-  command = "/usr/local/hawq//bin/gpstate -t -d /data/master/gpseg-1/"
+  command = "source /usr/local/hawq/greenplum_path.sh; gpstate -t -d {0}/gpseg-1".format(params.hawq_master_dir)
   (retcode, out, err) = subprocess_command_with_results(command)
 
   if retcode:
@@ -211,12 +210,10 @@ def try_activate_standby(env):
   Execute(command, user=params.hawq_user, timeout=600)
 
 def subprocess_command_with_results(cmd):
-  if type(cmd) == str:
-    cmd = shlex.split(cmd)
   process = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
                              stdin=subprocess.PIPE,
-                             stderr=subprocess.PIPE
-  )
+                             stderr=subprocess.PIPE,
+                             shell=True)
   (stdoutdata, stderrdata) = process.communicate()
   return process.returncode, stdoutdata, stderrdata
