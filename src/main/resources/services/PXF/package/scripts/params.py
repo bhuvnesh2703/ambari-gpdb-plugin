@@ -35,6 +35,7 @@ pxf_home = "/usr/lib/gphd/pxf"
 pxf_conf_dir = '/etc/gphd/pxf/conf'
 hadoop_conf_dir = "/etc/hadoop/conf"
 hive_conf_dir = "/etc/hive/conf"
+hbase_conf_dir = "/etc/hbase/conf"
 
 if config["commandType"] == 'EXECUTION_COMMAND':
   pxf_keytab_file = config["configurations"]["pxf-site"]["pxf.keytab.file"]
