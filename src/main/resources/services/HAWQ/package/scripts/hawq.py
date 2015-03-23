@@ -9,9 +9,13 @@ import pwd
 def verify_segments_state(env):
   import params
   env.set_params(params)
-  command = "source /usr/local/hawq/greenplum_path.sh; gpstate -t -d {0}/gpseg-1".format(params.hawq_master_dir)
-  (retcode, out, err) = subprocess_command_with_results(command)
+  command = "su - {0} -c 'source /usr/local/hawq/greenplum_path.sh; gpstate -t -d {1}/gpseg-1'".format(params.hawq_user, params.hawq_master_dir)
+  remote_hostname = None
+  if not os.path.exists(params.hawq_master_dir):
+    remote_hostname = params.hawq_master
 
+  (retcode, out, err) = subprocess_command_with_results(command, remote_hostname)
+  print (retcode, out, err)
   if retcode:
     raise Exception("gpstate command returned non-zero result: {0}. Out: {1} Error: {2}".format(retcode, out, err))
 
@@ -209,7 +213,9 @@ def try_activate_standby(env):
   command = source + cmd
   Execute(command, user=params.hawq_user, timeout=600)
 
-def subprocess_command_with_results(cmd):
+def subprocess_command_with_results(cmd, remote_hostname=None):
+  if remote_hostname:
+    cmd = "ssh -o StrictHostKeyChecking=no {0} \" {1} \"".format(remote_hostname, cmd)
   process = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
                              stdin=subprocess.PIPE,
