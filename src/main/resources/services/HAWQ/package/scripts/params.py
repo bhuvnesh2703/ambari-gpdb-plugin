@@ -10,7 +10,7 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 hawq_master_dir = '/data/hawq/master'
 hawq_data_dir   = '/data/hawq/segments'
-hawq_master_dbid_path = '/data/hawq/master/gpseg-1/gp_dbid'
+hawq_master_dbid_path_suffix = '/gpseg-1/gp_dbid'
 hawq_tmp_dir    = '/tmp/hawq/'
 hawq_user       = 'gpadmin'
 hawq_group      = 'gpadmin'
@@ -27,13 +27,13 @@ if config["commandType"] == 'EXECUTION_COMMAND':
   
   ha_enabled = config['configurations']['hdfs-site'].get('dfs.nameservices')
   if ha_enabled:
-  	_nn_dfs_nameservices = config['configurations']['hdfs-site']['dfs.nameservices']
-  	_nn_nameservices_namenodes = config['configurations']['hdfs-site']['dfs.ha.namenodes.{0}'.format(_nn_dfs_nameservices)]
-  	_nn_nameservices_nodelist = _nn_nameservices_namenodes.split(',')
-  	_nn_nameservices_nn1_rpc_address = config['configurations']['hdfs-site']['dfs.namenode.rpc-address.{0}.{1}'.format(_nn_dfs_nameservices,_nn_nameservices_nodelist[0])]
-  	_nn_nameservices_nn1_http_address = config['configurations']['hdfs-site']['dfs.namenode.http-address.{0}.{1}'.format(_nn_dfs_nameservices,_nn_nameservices_nodelist[0])]
-  	_nn_nameservices_nn2_rpc_address = config['configurations']['hdfs-site']['dfs.namenode.rpc-address.{0}.{1}'.format(_nn_dfs_nameservices,_nn_nameservices_nodelist[1])]
-  	_nn_nameservices_nn2_http_address = config['configurations']['hdfs-site']['dfs.namenode.http-address.{0}.{1}'.format(_nn_dfs_nameservices,_nn_nameservices_nodelist[1])]
+    _nn_dfs_nameservices = config['configurations']['hdfs-site']['dfs.nameservices']
+    _nn_nameservices_namenodes = config['configurations']['hdfs-site']['dfs.ha.namenodes.{0}'.format(_nn_dfs_nameservices)]
+    _nn_nameservices_nodelist = _nn_nameservices_namenodes.split(',')
+    _nn_nameservices_nn1_rpc_address = config['configurations']['hdfs-site']['dfs.namenode.rpc-address.{0}.{1}'.format(_nn_dfs_nameservices,_nn_nameservices_nodelist[0])]
+    _nn_nameservices_nn1_http_address = config['configurations']['hdfs-site']['dfs.namenode.http-address.{0}.{1}'.format(_nn_dfs_nameservices,_nn_nameservices_nodelist[0])]
+    _nn_nameservices_nn2_rpc_address = config['configurations']['hdfs-site']['dfs.namenode.rpc-address.{0}.{1}'.format(_nn_dfs_nameservices,_nn_nameservices_nodelist[1])]
+    _nn_nameservices_nn2_http_address = config['configurations']['hdfs-site']['dfs.namenode.http-address.{0}.{1}'.format(_nn_dfs_nameservices,_nn_nameservices_nodelist[1])]
   
   if security_enabled:
     _nn_principal_name = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
@@ -61,7 +61,6 @@ if config["commandType"] == 'EXECUTION_COMMAND':
 
     if hawq_site_config.get("hawq.master.directory"):
       hawq_master_dir = hawq_site_config.get("hawq.master.directory").strip()
-      hawq_master_dbid_path = hawq_master_dir + '/gpseg-1/gp_dbid'
 
     if hawq_site_config.get("hawq.data.directory"):
       hawq_data_dir = hawq_site_config.get("hawq.data.directory").strip()
@@ -70,16 +69,13 @@ if config["commandType"] == 'EXECUTION_COMMAND':
       hawq_cluster_name = hawq_site_config.get("hawq.cluster.name")
 
     if hawq_site_config.get("hawq.segment.base.port"):
-        hawq_segment_base_port = int(hawq_site_config.get("hawq.segment.base.port"))
+      hawq_segment_base_port = int(hawq_site_config.get("hawq.segment.base.port"))
 
     if hawq_site_config.get("hawq.master.port"):
-        hawq_master_port = int(hawq_site_config.get("hawq.master.port"))
+      hawq_master_port = int(hawq_site_config.get("hawq.master.port"))
 
     if hawq_site_config.get("hawq.segments.per.node"):
       segments_per_node = int(hawq_site_config.get("hawq.segments.per.node"))
-
-    if hawq_site_config.get("hawq.master.dbid.path"):
-      hawq_master_dbid_path = hawq_site_config.get("hawq.master.dbid.path").strip()
 
     if hawq_site_config.get("hawq.temp.directory"):
       hawq_temp_directory = hawq_site_config.get("hawq.temp.directory").strip()

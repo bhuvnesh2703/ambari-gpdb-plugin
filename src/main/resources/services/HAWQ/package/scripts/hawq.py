@@ -122,7 +122,8 @@ def master_configure(env):
 
 def master_dbinit(env=None):
   import params
-  if not os.path.exists(params.hawq_master_dbid_path):
+  master_dbid_path = params.hawq_master_dir + params.hawq_master_dbid_path_suffix
+  if not os.path.exists(master_dbid_path):
     if params.security_enabled:
       kinit = "/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;"
       cmd_setup_dir = "hdfs dfs -mkdir -p /user/gpadmin && hdfs dfs -chown -R gpadmin:gpadmin /user/gpadmin && hdfs dfs -chmod 777 /user/gpadmin;"
