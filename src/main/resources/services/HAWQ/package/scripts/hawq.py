@@ -210,7 +210,7 @@ def try_activate_standby(env):
     raise Exception("Standby is not configured")
 
   source = "source /usr/local/hawq/greenplum_path.sh;"
-  cmd = "gpactivatestandby -a -f -d {0}/gpseg-1".format(params.hawq_master_dir)
+  cmd = "export MASTER_DATA_DIRECTORY={0}/gpseg-1;gpactivatestandby -a -f -d {0}/gpseg-1".format(params.hawq_master_dir)
   command = source + cmd
   Execute(command, user=params.hawq_user, timeout=600)
 
