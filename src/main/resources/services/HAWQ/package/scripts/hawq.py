@@ -57,7 +57,7 @@ def set_osparams(env):
      group=params.hawq_group)
   command += "cat %s >> /etc/security/limits.conf && ulimit -n 2900000" % params.hawq_limits_conf
 
-  Execute(command, timeout=60)
+  Execute(command, timeout=600)
 
 def common_setup(env):
   import params
@@ -119,6 +119,13 @@ def master_configure(env):
        owner=params.hawq_user,
        group=params.hawq_group,
        content=Template("hostfile.j2"))
+
+  File(params.hawq_bashrc,
+     content=Template("hawq.bashrc.j2"),
+     owner=params.hawq_user,
+     group=params.hawq_group)
+  command = "cat %s >> /home/gpadmin/.bashrc" % params.hawq_bashrc
+  Execute(command, user=params.hawq_user, timeout=600)
 
 def master_dbinit(env=None):
   import params

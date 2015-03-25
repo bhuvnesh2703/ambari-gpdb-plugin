@@ -14,9 +14,10 @@ hawq_master_dbid_path_suffix = '/gpseg-1/gp_dbid'
 hawq_tmp_dir    = '/tmp/hawq/'
 hawq_user       = 'gpadmin'
 hawq_group      = 'gpadmin'
-hawq_gphome   = '/usr/local/hawq/'
+hawq_gphome     = '/usr/local/hawq/'
 hawq_sysctl_conf = "{0}/etc/hawq.sysctl.conf".format(hawq_gphome)
 hawq_limits_conf = "{0}/etc/hawq.limits.conf".format(hawq_gphome)
+hawq_bashrc      = "{0}/etc/hawq.bashrc".format(hawq_gphome)
 
 if config["commandType"] == 'EXECUTION_COMMAND':
   hdfs_superuser  = config["configurations"]["hdfs-site"]["dfs.cluster.administrators"].strip()
