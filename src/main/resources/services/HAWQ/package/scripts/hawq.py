@@ -97,6 +97,8 @@ def standby_configure(env):
           owner=params.hawq_user,
           group=params.hawq_group,
           recursive=True)
+    command = "echo {0} > /home/{1}/master-dir".format(params.hawq_master_dir, params.hawq_user)
+    Execute(command, user=params.hawq_user, timeout=600)
 
 def master_configure(env):
   import params
@@ -125,6 +127,9 @@ def master_configure(env):
      owner=params.hawq_user,
      group=params.hawq_group)
   command = "cat %s >> /home/gpadmin/.bashrc" % params.hawq_bashrc
+  Execute(command, user=params.hawq_user, timeout=600)
+
+  command = "echo {0} > /home/{1}/master-dir".format(params.hawq_master_dir, params.hawq_user)
   Execute(command, user=params.hawq_user, timeout=600)
 
 def master_dbinit(env=None):
@@ -209,7 +214,8 @@ def metrics_stop(env=None):
 
 def segment_configure(env=None):
   import params
-  pass
+  command = "echo {0} > /home/{1}/segments-dir".format(params.hawq_data_dir, params.hawq_user)
+  Execute(command, user=params.hawq_user, timeout=600)
 
 def try_activate_standby(env):
   import params

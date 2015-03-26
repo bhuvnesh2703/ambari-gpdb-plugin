@@ -3,8 +3,19 @@ import fnmatch
 import params
 from resource_management import *
 
+master_dir = params.hawq_master_dir
+segments_dir = params.hawq_data_dir
+master_dir_file = "/home/{0}/master-dir".format(params.hawq_user)
+segments_dir_file = "/home/{0}/segments-dir".format(params.hawq_user)
+if os.path.isfile(master_dir_file):
+  with open(master_dir_file, 'r') as f:
+    master_dir = f.readline().strip()
+if os.path.isfile(segments_dir_file):
+  with open(segments_dir_file, 'r') as f:
+    segments_dir = f.readline().strip()
+
 pid_hawqmaster = "{0}/hawq_master.pid".format(params.hawq_tmp_dir)
-pid_postmaster = "{0}/gpseg-1/postmaster.pid".format(params.hawq_master_dir)
+pid_postmaster = "{0}/gpseg-1/postmaster.pid".format(master_dir)
 if os.path.isfile(pid_postmaster):
   with open(pid_postmaster, 'r') as f:
     pid = f.readline()
@@ -14,7 +25,7 @@ if os.path.isfile(pid_postmaster):
          group=params.hawq_group)
 
 segment_id = 0
-for root, dirnames, filenames in os.walk(params.hawq_data_dir):
+for root, dirnames, filenames in os.walk(segments_dir):
   for filename in fnmatch.filter(filenames, 'postmaster.pid'):
     pid_postmaster_segment = os.path.join(root, filename)
     with open(pid_postmaster_segment, 'r') as f:
