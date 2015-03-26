@@ -10,6 +10,7 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 tcserver_pid_file = "/var/gphd/pxf/pxf-service/logs/tcserver.pid"
 
 pxf_keytab_file = "/etc/security/keytabs/pxf.service.keytab"
+_pxf_principal_name = ''
 
 stack_name = str(config['hostLevelParams']['stack_name'])
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
@@ -38,11 +39,10 @@ hive_conf_dir = "/etc/hive/conf"
 hbase_conf_dir = "/etc/hbase/conf"
 
 if config["commandType"] == 'EXECUTION_COMMAND':
-  pxf_keytab_file = config["configurations"]["pxf-site"]["pxf.keytab.file"]
-  _pxf_principal_name = ''
-  if security_enabled:
-	  _nn_principal_name = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
-	  _pxf_principal_name = _nn_principal_name.replace('nn', 'pxf')
-	  # e.g. pxf/_HOST@EXAMPLE.COM
   java_home = config["hostLevelParams"]["java_home"]
-
+  pxf_site_config = config["configurations"].get("pxf-site")
+  if pxf_site_config:
+    pxf_keytab_file = config["configurations"]["pxf-site"]["pxf.keytab.file"]
+  if security_enabled:
+    _nn_principal_name = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
+    _pxf_principal_name = _nn_principal_name.replace('nn', 'pxf')
