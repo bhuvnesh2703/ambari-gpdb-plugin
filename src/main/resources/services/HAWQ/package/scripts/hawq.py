@@ -72,8 +72,8 @@ def common_setup(env):
         groups=[params.hawq_group, params.user_group],
         ignore_failures = True)
 
-  # GPHOME owned by gpadmin
-  command  = "chown -R %s:%s %s &&" % (params.hawq_user, params.user_group, params.hawq_gphome)
+  #GPHOME owned by gpadmin
+  command="chown -R %s:%s %s" % (params.hawq_user, params.user_group, params.hawq_gphome)
   Execute(command, timeout=600)
 
   File("{0}/etc/hdfs-client.xml".format(params.hawq_gphome),
