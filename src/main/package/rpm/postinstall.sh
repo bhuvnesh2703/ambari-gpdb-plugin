@@ -14,7 +14,7 @@ def updateRepoWithPads(repoinfoxml):
   root = tree.getroot()
 
   for os_tag in root.findall('.//os'):
-    if os_tag.attrib['type'] == 'redhat6':
+    if os_tag.attrib['type'] == 'redhat6' or os_tag.attrib['type'] == 'suse11':
       for reponame in os_tag.findall('.//reponame'):
         if 'PADS' in reponame.text:
           is_padsrepo_set = True
@@ -39,7 +39,7 @@ elif os.path.exists('/var/lib/ambari-server/resources/stacks/HDP/2.2/role_comman
   data['general_deps']['HAWQMASTER-START'] = ['NAMENODE-START']
   json_data.seek(0)
   json.dump(data, json_data, indent=2)
-  json_data.close()
+  json_data.close() 
 
 if os.path.exists('/var/lib/ambari-server/resources/stacks/PHD/3.0/repos/repoinfo.xml'):
   updateRepoWithPads('/var/lib/ambari-server/resources/stacks/PHD/3.0/repos/repoinfo.xml')
