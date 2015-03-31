@@ -143,13 +143,13 @@ def master_dbinit(env=None):
     if params.security_enabled:
       kinit = "/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;"
       cmd_setup_dir = "hdfs dfs -mkdir -p /user/gpadmin && hdfs dfs -chown -R gpadmin:gpadmin /user/gpadmin && hdfs dfs -chmod 777 /user/gpadmin;"
-      cmd_setup_dir += "hdfs dfs -mkdir -p /gpsql && hdfs dfs -chown -R postgres:gpadmin /gpsql && hdfs dfs -chmod 755 /gpsql;"
+      cmd_setup_dir += "hdfs dfs -mkdir -p /hawq_data && hdfs dfs -chown -R postgres:gpadmin /hawq_data && hdfs dfs -chmod 755 /hawq_data;"
       command = kinit+cmd_setup_dir
       Execute(command, user=params.hdfs_superuser, timeout=600)
     else:
-      # create the gpsql directory first
-      cmd_gpsql_dir =  "hdfs dfs -mkdir -p /gpsql && hdfs dfs -chown -R gpadmin:gpadmin /gpsql && hdfs dfs -chmod 755 /gpsql;"
-      Execute(cmd_gpsql_dir, user=params.hdfs_superuser, timeout=600)
+      # create the hawq_data directory first
+      cmd_hawq_data_dir =  "hdfs dfs -mkdir -p /hawq_data && hdfs dfs -chown -R gpadmin:gpadmin /hawq_data && hdfs dfs -chmod 755 /hawq_data;"
+      Execute(cmd_hawq_data_dir, user=params.hdfs_superuser, timeout=600)
 
     # ex-keys with segment hosts
     source = "source /usr/local/hawq/greenplum_path.sh;"
