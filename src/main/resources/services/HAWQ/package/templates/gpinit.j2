@@ -51,9 +51,9 @@ ENCODING=UNICODE
 ################################################
 
 {% if ha_enabled %}
-DFS_URL={{_nn_dfs_nameservices}}/gpsql
+DFS_URL={{_nn_dfs_nameservices}}/hawq_data
 {% else %}
-DFS_URL={{dfs_url}}/gpsql
+DFS_URL={{dfs_url}}/hawq_data
 {% endif %}
 
 DFS_NAME=hdfs
