@@ -177,7 +177,7 @@ def master_dbinit(env=None):
         cmd = cmd + " -s {0}".format(params.hawq_standby)
     command = source + cmd
     try:
-      Execute(command, user=params.hawq_user, timeout=600)
+      Execute(command, user=params.hawq_user, timeout=3600)
     except Fail as ex:
       if 'returned 1' in ex.message:
         print ex.message
