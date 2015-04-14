@@ -15,8 +15,8 @@ class HawqSegment(Script):
     hawq.system_verification(env, "segment")
 
   def start(self, env):
-    pass
-    
+    self.configure(env)
+
   def stop(self, env):
     pass
 

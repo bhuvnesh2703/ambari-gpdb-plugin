@@ -15,6 +15,7 @@ class HawqMaster(Script):
     hawq.system_verification(env, "master")
 
   def start(self, env):
+    self.configure(env)
     hawq.master_start(env)
 
   def stop(self, env):

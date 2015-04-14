@@ -18,6 +18,7 @@ hawq_gphome     = '/usr/local/hawq/'
 hawq_sysctl_conf = "{0}/etc/hawq.sysctl.conf".format(hawq_gphome)
 hawq_limits_conf = "{0}/etc/hawq.limits.conf".format(hawq_gphome)
 hawq_bashrc      = "{0}/etc/hawq.bashrc".format(hawq_gphome)
+sysctl_vm_overcommit_memory = '1'
 
 if config["commandType"] == 'EXECUTION_COMMAND':
   hdfs_superuser  = config["configurations"]["hdfs-site"]["dfs.cluster.administrators"].strip()
@@ -89,3 +90,6 @@ if config["commandType"] == 'EXECUTION_COMMAND':
 
     if hawq_site_config.get("skip.preinstall.verification"):
       skip_preinstall_verification = hawq_site_config.get("skip.preinstall.verification").strip().lower() == "true"
+
+    if hawq_site_config.get("sysctl.vm.overcommit_memory"):
+      sysctl_vm_overcommit_memory = hawq_site_config.get("sysctl.vm.overcommit_memory").strip()

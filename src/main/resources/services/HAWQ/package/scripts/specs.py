@@ -52,7 +52,6 @@ kernel.pid_max = 798720
 # increase network
 net.core.rmem_max=2097152
 net.core.wmem_max=2097152
-vm.overcommit_memory = 2
 """
 
 osparams = {}

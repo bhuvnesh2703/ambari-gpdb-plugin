@@ -14,6 +14,9 @@ if os.path.isfile(segments_dir_file):
   with open(segments_dir_file, 'r') as f:
     segments_dir = f.readline().strip()
 
+cmd = "rm -rf {0}/*.pid".format(params.hawq_tmp_dir)
+Execute(cmd, timeout=600)
+
 pid_hawqmaster = "{0}/hawq_master.pid".format(params.hawq_tmp_dir)
 pid_postmaster = "{0}/gpseg-1/postmaster.pid".format(master_dir)
 if os.path.isfile(pid_postmaster):

@@ -15,7 +15,7 @@ class HawqStandby(Script):
     hawq.system_verification(env, "master")
 
   def start(self, env):
-    pass
+    self.configure(env)
 
   def stop(self, env):
     pass

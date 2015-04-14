@@ -68,4 +68,11 @@
     <value>true</value>
     <description>Set to TRUE if you would like to skip preinstall cluster verification on system parameters and settings, e.g. memory, disk, OS, and port requirements.</description>
   </property>
+
+  <property>
+    <name>sysctl.vm.overcommit_memory</name>
+    <value>1</value>
+    <description>Set system parameter vm.overcommit_memory</description>
+  </property>
+
 </configuration>
