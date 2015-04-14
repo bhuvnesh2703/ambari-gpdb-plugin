@@ -49,19 +49,19 @@ def set_osparams(env):
      content=Template("hawq.sysctl.conf.j2"),
      owner=params.hawq_user,
      group=params.hawq_group)
-  command = "cat %s >> /etc/sysctl.conf &&" % params.hawq_sysctl_conf
-
-  File(params.hawq_limits_conf,
-     content=Template("hawq.limits.conf.j2"),
-     owner=params.hawq_user,
-     group=params.hawq_group)
-  command += "cat %s >> /etc/security/limits.conf && ulimit -n 2900000" % params.hawq_limits_conf
-
+  command = "cat %s >> /etc/sysctl.conf" % params.hawq_sysctl_conf
   Execute(command, timeout=600)
 
   overcommit_memory = "vm.overcommit_memory"
   sysctl_conf_file = "/etc/sysctl.conf"
   command = "sed -i '/{0}/d' {1} && echo '{0} = {2}' >> {1} && sysctl -e -p".format(overcommit_memory, sysctl_conf_file, params.sysctl_vm_overcommit_memory)
+  Execute(command, timeout=600)
+
+  File(params.hawq_limits_conf,
+     content=Template("hawq.limits.conf.j2"),
+     owner=params.hawq_user,
+     group=params.hawq_group)
+  command = "cat %s >> /etc/security/limits.conf && ulimit -n 2900000" % params.hawq_limits_conf
   Execute(command, timeout=600)
 
 def common_setup(env):
