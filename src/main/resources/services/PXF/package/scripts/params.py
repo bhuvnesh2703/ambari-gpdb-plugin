@@ -1,5 +1,6 @@
-from resource_management.libraries.functions.version import format_stack_version, compare_versions
+from resource_management.libraries.functions.version import compare_versions
 from resource_management import *
+import utils
 
 config = Script.get_config()
 
@@ -14,7 +15,7 @@ _pxf_principal_name = ''
 
 stack_name = str(config['hostLevelParams']['stack_name'])
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-stack_version = format_stack_version(stack_version_unformatted)
+stack_version = utils.format_stack_version(stack_version_unformatted)
 
 #hadoop params
 if stack_name == 'HDP' and compare_versions(stack_version, '2.2') >= 0:
