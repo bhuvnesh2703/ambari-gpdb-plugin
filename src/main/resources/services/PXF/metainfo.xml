@@ -45,16 +45,16 @@
                <name>vfabric-tc-server-standard.noarch</name>
              </package>
              <package>
-               <name>pxf-service-2.5*</name>
+               <name>pxf-service</name>
              </package>
              <package>
-               <name>pxf-hdfs-2.5*</name>
+               <name>pxf-hdfs</name>
              </package>
              <package>
-               <name>pxf-hbase-2.5*</name>
+               <name>pxf-hbase</name>
              </package>
              <package>
-               <name>pxf-hive-2.5*</name>
+               <name>pxf-hive</name>
              </package>
           </packages>
         </osSpecific>
