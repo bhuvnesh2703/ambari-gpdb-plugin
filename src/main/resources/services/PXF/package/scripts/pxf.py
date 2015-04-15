@@ -19,7 +19,10 @@ def init(env):
   command = "service pxf-service init"
   Execute(command, timeout=600)
 
-  command = "usermod -a -G {0} pxf".format(params.hdfs_superuser_group)
+  if System.get_instance().os_family == "suse":
+    command = "usermod -G {0} pxf".format(params.hdfs_superuser_group)
+  else:
+    command = "usermod -a -G {0} pxf".format(params.hdfs_superuser_group)
   Execute(command, timeout=600)
 
 def start(env):
