@@ -20,7 +20,7 @@ def init(env):
   Execute(command, timeout=600)
 
   if System.get_instance().os_family == "suse":
-    command = "usermod -G {0} pxf".format(params.hdfs_superuser_group)
+    command = "usermod -A {0} pxf".format(params.hdfs_superuser_group)
   else:
     command = "usermod -a -G {0} pxf".format(params.hdfs_superuser_group)
   Execute(command, timeout=600)
