@@ -73,7 +73,7 @@ def common_setup(env):
     Group(params.hawq_group, ignore_failures = True)
     User(params.hawq_user,
         gid=params.hawq_group,
-        password=crypt.crypt(params.hawq_password),
+        password=crypt.crypt(params.hawq_password, "salt"),
         groups=[params.hawq_group, params.user_group],
         ignore_failures = True)
 
