@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 from pprint import pprint
 
 def updateRepoWithPads(repoinfoxml):
-  pads_repo='PADS-1.3.0.0'
+  pads_repo='PADS-1.3.0.1'
   pads_repo_str = '<repo><baseurl>http://' + socket.getfqdn() + '/' + pads_repo + '</baseurl><repoid>' + pads_repo + '</repoid><reponame>' + pads_repo + '</reponame></repo>'
   is_padsrepo_set = None
 
