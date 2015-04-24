@@ -16,7 +16,7 @@ def init(env):
     command += "chmod 440 %s" % (params.pxf_keytab_file)
     Execute(command, timeout=600)
 
-  command = "service pxf-service init"
+  command = "service pxf-service init && usermod -s /bin/bash %s" % params.pxf_user
   Execute(command, timeout=600)
 
   if System.get_instance().os_family == "suse":
