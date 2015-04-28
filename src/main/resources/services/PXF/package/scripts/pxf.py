@@ -27,7 +27,7 @@ def init(env):
 
 def start(env):
   import params
-  command = "service pxf-service start"
+  command = "service pxf-service restart"
   Execute(command, timeout=600)
 
 def stop(env):
