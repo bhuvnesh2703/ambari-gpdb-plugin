@@ -22,10 +22,8 @@ sysctl_vm_overcommit_memory = '1'
 
 if config["commandType"] == 'EXECUTION_COMMAND':
   hdfs_superuser  = config["configurations"]["hdfs-site"]["dfs.cluster.administrators"].strip()
-  dfs_url       = config["configurations"]["core-site"]["fs.defaultFS"].replace("hdfs://", "")
   hawq_master   = config["clusterHostInfo"]["hawqmaster_hosts"][0]
   hawq_segments = config["clusterHostInfo"]["hawqsegment_hosts"]
-  hostname = dfs_url.split(':')[0]
   
   ha_enabled = config['configurations']['hdfs-site'].get('dfs.nameservices')
   if ha_enabled:
@@ -39,8 +37,6 @@ if config["commandType"] == 'EXECUTION_COMMAND':
   
   if security_enabled:
     _nn_principal_name = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
-    _nn_principal_name = _nn_principal_name.replace('_HOST', hostname.lower())
-    # e.g. nn/c6401.ambari.apache.org@EXAMPLE.COM
 
   if config["clusterHostInfo"]["hawqstandby_hosts"] and len(config["clusterHostInfo"]["hawqstandby_hosts"]) > 0:
       hawq_standby = config["clusterHostInfo"]["hawqstandby_hosts"][0]

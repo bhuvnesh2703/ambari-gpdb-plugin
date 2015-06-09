@@ -190,7 +190,38 @@ def master_dbinit(env=None):
       else:
         raise ex
     return False
-  return True
+  else:
+    if params.security_enabled:
+      kinit = "/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;"
+      cmd_setup_dir = "hdfs dfs -chown -R postgres:gpadmin /hawq_data"
+      command = kinit+cmd_setup_dir
+      Execute(command, user=params.hdfs_superuser, timeout=600)
+      if secure_params_exists():
+        hawq_mgmt("echo 'Y' | gpstart -m")
+        hawq_mgmt("gpconfig --masteronly -c enable_secure_filesystem -v 'on'")
+        hawq_mgmt("gpconfig --masteronly -c krb_server_keyfile -v \"'/etc/security/keytabs/hawq.service.keytab'\"")
+        hawq_mgmt("gpstop -m")
+    return True
+
+def secure_params_exists():
+  import params
+  enable_secure_filesystem = False
+  krb_server_keyfile = False
+  with open("{0}/gpseg-1/postgresql.conf".format(params.hawq_master_dir)) as fh:
+    for line in fh.readlines():
+      data_excluding_comments = line.partition('#')[0].strip('\n')
+      if len(data_excluding_comments) != 0:
+        if re.search('\s*enable_secure_filesystem\s*=\s*on\s*', data_excluding_comments):
+          enable_secure_filesystem = True
+        if re.search('\s*krb_server_keyfile\s*=\s*("|\')(.*?)(\'|")\s*', data_excluding_comments):
+        krb_server_keyfile = True
+  return not (enable_secure_filesystem and krb_server_keyfile)
+                                                                            
+def hawq_mgmt(cmd):
+  import params
+  source = "export MASTER_DATA_DIRECTORY={0}/gpseg-1; source /usr/local/hawq/greenplum_path.sh;".format(params.hawq_master_dir)
+  command = source + cmd
+  Execute(command, user=params.hawq_user, timeout=600)
 
 def master_start(env=None):
   import params
