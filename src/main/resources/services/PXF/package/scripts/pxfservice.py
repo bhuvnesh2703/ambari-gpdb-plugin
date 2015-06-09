@@ -14,6 +14,7 @@ class PxfService(Script):
     pxf.init(env)
 
   def start(self, env):
+    self.configure(env)
     pxf.start(env)
 
   def stop(self, env):
