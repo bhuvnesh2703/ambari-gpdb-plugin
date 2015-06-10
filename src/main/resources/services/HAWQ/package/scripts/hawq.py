@@ -1,6 +1,7 @@
 from resource_management import *
 from Hardware import Hardware
 from verifications import Verifications
+from common import subprocess_command_with_results
 import specs
 import os
 import subprocess
@@ -236,13 +237,3 @@ def try_activate_standby(env):
   command = source + cmd
   Execute(command, user=params.hawq_user, timeout=600)
 
-def subprocess_command_with_results(cmd, remote_hostname=None):
-  if remote_hostname:
-    cmd = "ssh -o StrictHostKeyChecking=no {0} \" {1} \"".format(remote_hostname, cmd)
-  process = subprocess.Popen(cmd,
-                             stdout=subprocess.PIPE,
-                             stdin=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             shell=True)
-  (stdoutdata, stderrdata) = process.communicate()
-  return process.returncode, stdoutdata, stderrdata
