@@ -1,7 +1,7 @@
 from resource_management import *
 from Hardware import Hardware
 from verifications import Verifications
-from common import *
+from common import subprocess_command_with_results
 import specs
 import os
 import subprocess
