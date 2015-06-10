@@ -191,21 +191,22 @@ def master_dbinit(env=None):
         raise ex
     return False
   else:
-    # Configure postgresql.conf params if security is enabled on cluster
-    if params.security_enabled:
-      kinit = "/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;"
-      cmd_setup_dir = "hdfs dfs -chown -R postgres:gpadmin /hawq_data"
-      command = kinit+cmd_setup_dir
-      Execute(command, user=params.hdfs_superuser, timeout=600)
-      # Identify if postgresql.conf has required entries for securing hawq to avoid duplicate entry addition.
-      if secure_params_exists():
-        # Start the database in utility mode and configure the properties required for security"
-        hawq_mgmt("echo 'Y' | gpstart -m")
-        hawq_mgmt("gpconfig --masteronly -c enable_secure_filesystem -v 'on'")
-        hawq_mgmt("gpconfig --masteronly -c krb_server_keyfile -v \"'/etc/security/keytabs/hawq.service.keytab'\"")
-        # Stop database previous started in utility mode
-        hawq_mgmt("gpstop -m")
     return True
+
+def set_security():
+  import params
+  kinit = "/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;"
+  cmd_setup_dir = "hdfs dfs -chown -R postgres:gpadmin /hawq_data"
+  command = kinit+cmd_setup_dir
+  Execute(command, user=params.hdfs_superuser, timeout=600)
+  # Identify if postgresql.conf has required entries for securing hawq to avoid duplicate entry addition.
+  if not secure_params_exists():
+    # Start the database in utility mode and configure the properties required for security"
+    hawq_mgmt("echo 'Y' | gpstart -m")
+    hawq_mgmt("gpconfig --masteronly -c enable_secure_filesystem -v 'on'")
+    hawq_mgmt("gpconfig --masteronly -c krb_server_keyfile -v \"'/etc/security/keytabs/hawq.service.keytab'\"")
+    # Stop database previous started in utility mode
+    hawq_mgmt("gpstop -m")
 
 def secure_params_exists():
   import params
@@ -219,7 +220,7 @@ def secure_params_exists():
           enable_secure_filesystem = True
         if re.search('\s*krb_server_keyfile\s*=\s*\'(.*?)\'\s*', data_excluding_comments):
           krb_server_keyfile = True
-  return not (enable_secure_filesystem and krb_server_keyfile)
+  return enable_secure_filesystem and krb_server_keyfile
                                                                             
 def hawq_mgmt(cmd):
   import params
@@ -231,6 +232,9 @@ def master_start(env=None):
   import params
   source = "source /usr/local/hawq/greenplum_path.sh;"
   if master_dbinit(env): # check we have initialized. If not do it. dbinit will also start
+    # Configure postgresql.conf params if security is enabled on cluster
+    if params.security_enabled:
+      set_security()
     cmd = "gpstart -a -d {0}/gpseg-1".format(params.hawq_master_dir)
     command = source + cmd
     Execute(command, user=params.hawq_user, timeout=600)
