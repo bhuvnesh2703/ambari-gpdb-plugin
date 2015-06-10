@@ -202,7 +202,7 @@ def postgres_secure_params_exists():
       if len(data_excluding_comments) != 0:
         if re.search('\s*enable_secure_filesystem\s*=\s*on\s*', data_excluding_comments):
           enable_secure_filesystem = True
-        if re.search('\s*krb_server_keyfile\s*=\s*\'(.*?)\'\s*', data_excluding_comments):
+        if re.search("\s*krb_server_keyfile\s*=\s*\'{0}\'\s*".format(params.hawq_keytab_file), data_excluding_comments):
           krb_server_keyfile = True
   return enable_secure_filesystem, krb_server_keyfile
                                                                             
@@ -213,12 +213,17 @@ def hawq_mgmt(cmd):
   Execute(command, user=params.hawq_user, timeout=600)
 
 def set_postgresql_conf(mode):
-  hawq_mgmt("echo 'Y' | gpstart -m")
-  hawq_mgmt("gpconfig --masteronly -c enable_secure_filesystem -v '{0}'".format(mode))
-  if params.security_enabled:
-    hawq_mgmt("gpconfig --masteronly -c krb_server_keyfile -v \"'/etc/security/keytabs/hawq.service.keytab'\"")
-  hawq_mgmt("gpstop -m")
+  import params
+  try:
+    hawq_mgmt("echo 'Y' | gpstart -m")
+    hawq_mgmt("gpconfig --masteronly -c enable_secure_filesystem -v '{0}'".format(mode))
+    if params.security_enabled:
+      hawq_mgmt("gpconfig --masteronly -c krb_server_keyfile -v \"'{0}'\"".format(params.hawq_keytab_file))
+    hawq_mgmt("gpstop -m")
+  except:
+    raise Exception("\nSecurity parameters cannot be set properly. Please verify postgresql.conf file for the parameters:\n1. enable_secure_filesystem\n2. krb_server_keyfile. \nIf hawq master is running, please stop it using 'gpstop -a' command before issuing start from Ambari UI.")
 
+# TODO: Make the headless keytab path dynamic
 def set_security():
   import params
   enable_secure_filesystem, krb_server_keyfile = postgres_secure_params_exists()
