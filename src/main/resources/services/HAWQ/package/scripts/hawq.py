@@ -192,30 +192,6 @@ def master_dbinit(env=None):
     return False
   return True
 
-def set_security():
-  import params
-  enable_secure_filesystem, krb_server_keyfile = postgres_secure_params_exists()
-  if params.security_enabled:
-    if not (enable_secure_filesystem and krb_server_keyfile):
-      set_postgresql_conf('on')
-    kinit = "/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;"
-    owner = "postgres:gpadmin"
-  else:
-    if enable_secure_filesystem:
-      set_postgresql_conf('off')
-    kinit = " "
-    owner = "gpadmin:gpadmin"
-  cmd_setup_dir = "hdfs dfs -chown -R {0} /hawq_data".format(owner)
-  command = kinit+cmd_setup_dir
-  Execute(command, user=params.hdfs_superuser, timeout=600)
-
-def set_postgresql_conf(mode):
-  hawq_mgmt("echo 'Y' | gpstart -m")
-  hawq_mgmt("gpconfig --masteronly -c enable_secure_filesystem -v '{0}'".format(mode))
-  if params.security_enabled:
-    hawq_mgmt("gpconfig --masteronly -c krb_server_keyfile -v \"'/etc/security/keytabs/hawq.service.keytab'\"")
-  hawq_mgmt("gpstop -m")
-
 def postgres_secure_params_exists():
   import params
   enable_secure_filesystem = False
@@ -235,6 +211,30 @@ def hawq_mgmt(cmd):
   source = "export MASTER_DATA_DIRECTORY={0}/gpseg-1; source /usr/local/hawq/greenplum_path.sh;".format(params.hawq_master_dir)
   command = source + cmd
   Execute(command, user=params.hawq_user, timeout=600)
+
+def set_postgresql_conf(mode):
+  hawq_mgmt("echo 'Y' | gpstart -m")
+  hawq_mgmt("gpconfig --masteronly -c enable_secure_filesystem -v '{0}'".format(mode))
+  if params.security_enabled:
+    hawq_mgmt("gpconfig --masteronly -c krb_server_keyfile -v \"'/etc/security/keytabs/hawq.service.keytab'\"")
+  hawq_mgmt("gpstop -m")
+
+def set_security():
+  import params
+  enable_secure_filesystem, krb_server_keyfile = postgres_secure_params_exists()
+  if params.security_enabled:
+    if not (enable_secure_filesystem and krb_server_keyfile):
+      set_postgresql_conf('on')
+    kinit = "/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;"
+    owner = "postgres:gpadmin"
+  else:
+    if enable_secure_filesystem:
+      set_postgresql_conf('off')
+    kinit = " "
+    owner = "gpadmin:gpadmin"
+  cmd_setup_dir = "hdfs dfs -chown -R {0} /hawq_data".format(owner)
+  command = kinit+cmd_setup_dir
+  Execute(command, user=params.hdfs_superuser, timeout=600)
 
 def master_start(env=None):
   import params
