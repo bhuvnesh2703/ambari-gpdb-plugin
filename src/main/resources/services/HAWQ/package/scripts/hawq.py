@@ -192,7 +192,8 @@ def master_dbinit(env=None):
     return False
   return True
 
-def postgres_secure_params_exists():
+# The below function returns current state of parameters enable_secure_filesystem and krb_server_keyfile
+def get_postgres_secure_param_status():
   import params
   enable_secure_filesystem = False
   krb_server_keyfile = False
@@ -206,7 +207,7 @@ def postgres_secure_params_exists():
           krb_server_keyfile = True
   return enable_secure_filesystem, krb_server_keyfile
                                                                             
-def hawq_mgmt(cmd):
+def execute_hawq_cmd(cmd):
   import params
   source = "export MASTER_DATA_DIRECTORY={0}/gpseg-1; source /usr/local/hawq/greenplum_path.sh;".format(params.hawq_master_dir)
   command = source + cmd
@@ -215,18 +216,18 @@ def hawq_mgmt(cmd):
 def set_postgresql_conf(mode):
   import params
   try:
-    hawq_mgmt("echo 'Y' | gpstart -m")
-    hawq_mgmt("gpconfig --masteronly -c enable_secure_filesystem -v '{0}'".format(mode))
+    execute_hawq_cmd("echo 'Y' | gpstart -m")
+    execute_hawq_cmd("gpconfig --masteronly -c enable_secure_filesystem -v '{0}'".format(mode))
     if params.security_enabled:
-      hawq_mgmt("gpconfig --masteronly -c krb_server_keyfile -v \"'{0}'\"".format(params.hawq_keytab_file))
-    hawq_mgmt("gpstop -m")
+      execute_hawq_cmd("gpconfig --masteronly -c krb_server_keyfile -v \"'{0}'\"".format(params.hawq_keytab_file))
+    execute_hawq_cmd("gpstop -m")
   except:
     raise Exception("\nSecurity parameters cannot be set properly. Please verify postgresql.conf file for the parameters:\n1. enable_secure_filesystem\n2. krb_server_keyfile. \nIf hawq master is running, please stop it using 'gpstop -a' command before issuing start from Ambari UI.")
 
 # TODO: Make the headless keytab path dynamic
 def set_security():
   import params
-  enable_secure_filesystem, krb_server_keyfile = postgres_secure_params_exists()
+  enable_secure_filesystem, krb_server_keyfile = get_postgres_secure_param_status()
   if params.security_enabled:
     if not (enable_secure_filesystem and krb_server_keyfile):
       set_postgresql_conf('on')
