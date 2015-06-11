@@ -193,7 +193,7 @@ def master_dbinit(env=None):
   return True
 
 # The below function returns current state of parameters enable_secure_filesystem and krb_server_keyfile
-def get_postgres_secure_param_status():
+def get_postgres_secure_param_statuses():
   import params
   enable_secure_filesystem = False
   krb_server_keyfile = False
@@ -227,7 +227,7 @@ def set_postgresql_conf(mode):
 # TODO: Make the headless keytab path dynamic
 def set_security():
   import params
-  enable_secure_filesystem, krb_server_keyfile = get_postgres_secure_param_status()
+  enable_secure_filesystem, krb_server_keyfile = get_postgres_secure_param_statuses()
   if params.security_enabled:
     if not (enable_secure_filesystem and krb_server_keyfile):
       set_postgresql_conf('on')
