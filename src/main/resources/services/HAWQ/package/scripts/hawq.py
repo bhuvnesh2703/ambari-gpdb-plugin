@@ -276,6 +276,9 @@ def metrics_stop(env=None):
 
 def segment_configure(env=None):
   import params
+  # Write hawq segment directory in an output file with each directory in a new line
+  # Example : Input = /data1/hawq/segment /data2/hawq/segment
+  #           Output file will contain 2 lines each holding one directory present in the input 
   command = "echo -e {0} > /home/{1}/segments-dir".format("\\\\n".join(params.hawq_data_dir.split()), params.hawq_user)
   Execute(command, user=params.hawq_user, timeout=600)
 
