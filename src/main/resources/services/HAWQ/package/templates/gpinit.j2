@@ -22,7 +22,7 @@ PORT_BASE={{hawq_segment_base_port}}
 #### physical host (if multiple addresses for a host are listed in
 #### the hostfile, the number of segments will be spread evenly across
 #### the specified interface addresses).
-declare -a DATA_DIRECTORY=( {{ (hawq_data_dir+' ') * segments_per_node}} )
+declare -a DATA_DIRECTORY=( {{hawq_data_dir}} )
 {% if hawq_temp_directory %}
 declare -a TEMP_DIRECTORY=({{hawq_temp_directory}})
 {% endif %}
