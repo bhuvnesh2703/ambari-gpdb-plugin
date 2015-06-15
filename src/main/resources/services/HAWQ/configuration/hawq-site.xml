@@ -21,12 +21,6 @@
   </property>
 
   <property>
-    <name>hawq.segments.per.node</name>
-    <value>2</value>
-    <description>Number of HAWQ segments processes per segment node</description>
-  </property>
-
-  <property>
     <name>hawq.user.password</name>
     <value>gpadmin</value>
     <property-type>PASSWORD</property-type>

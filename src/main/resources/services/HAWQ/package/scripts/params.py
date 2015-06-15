@@ -47,8 +47,6 @@ if config["commandType"] == 'EXECUTION_COMMAND':
   hawq_master_port = 5432
   hawq_segment_base_port=40000
   hawq_temp_directory = ""
-  segments_per_node = 2
-  hawq_temp_directory = ""
   hawq_keytab_file = "/etc/security/keytabs/hawq.service.keytab"
   set_os_parameters = False
   skip_preinstall_verification = True
@@ -73,9 +71,6 @@ if config["commandType"] == 'EXECUTION_COMMAND':
     if hawq_site_config.get("hawq.master.port"):
       hawq_master_port = int(hawq_site_config.get("hawq.master.port"))
 
-    if hawq_site_config.get("hawq.segments.per.node"):
-      segments_per_node = int(hawq_site_config.get("hawq.segments.per.node"))
-
     if hawq_site_config.get("hawq.temp.directory"):
       hawq_temp_directory = hawq_site_config.get("hawq.temp.directory").strip()
 
@@ -90,3 +85,5 @@ if config["commandType"] == 'EXECUTION_COMMAND':
 
     if hawq_site_config.get("sysctl.vm.overcommit_memory"):
       sysctl_vm_overcommit_memory = hawq_site_config.get("sysctl.vm.overcommit_memory").strip()
+
+  segments_per_node = len(hawq_data_dir.split())

@@ -86,8 +86,9 @@ def common_setup(env):
      content=Template("hdfs-client.j2"),
      owner=params.hawq_user,
      group=params.hawq_group)
+  
 
-  Directory([params.hawq_data_dir, params.hawq_tmp_dir],
+  Directory([params.hawq_data_dir.split(), params.hawq_tmp_dir],
             owner=params.hawq_user,
             group=params.hawq_group,
             recursive=True)
@@ -275,7 +276,7 @@ def metrics_stop(env=None):
 
 def segment_configure(env=None):
   import params
-  command = "echo {0} > /home/{1}/segments-dir".format(params.hawq_data_dir, params.hawq_user)
+  command = "echo -e {0} > /home/{1}/segments-dir".format("\\\\n".join(params.hawq_data_dir.split()), params.hawq_user)
   Execute(command, user=params.hawq_user, timeout=600)
 
 def try_activate_standby(env):
