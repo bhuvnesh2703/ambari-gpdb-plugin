@@ -15,10 +15,9 @@ hawq_tmp_dir    = '/tmp/hawq/'
 hawq_user       = 'gpadmin'
 hawq_group      = 'gpadmin'
 hawq_gphome     = '/usr/local/hawq/'
-hawq_sysctl_conf = "{0}/etc/hawq.sysctl.conf".format(hawq_gphome)
-hawq_limits_conf = "{0}/etc/hawq.limits.conf".format(hawq_gphome)
-hawq_bashrc      = "{0}/etc/hawq.bashrc".format(hawq_gphome)
-sysctl_vm_overcommit_memory = '1'
+hawq_sysctl_conf = "{0}etc/hawq.sysctl.conf".format(hawq_gphome)
+hawq_bashrc      = "{0}etc/hawq.bashrc".format(hawq_gphome)
+limits_conf_dir = "/etc/security/limits.d"
 
 if config["commandType"] == 'EXECUTION_COMMAND':
   hdfs_superuser  = config["configurations"]["hdfs-site"]["dfs.cluster.administrators"].strip()
