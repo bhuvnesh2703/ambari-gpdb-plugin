@@ -45,25 +45,25 @@ def system_verification(env, component):
     raise Fail( verify.get_notice() )
 
 def set_osparams(env):
-  import params 
+  import params
+  #Generate file with kernel parameters needed by hawq
   File(params.hawq_sysctl_conf,
      content=Template("hawq.sysctl.conf.j2"),
      owner=params.hawq_user,
      group=params.hawq_group)
-  command = "cat %s >> /etc/sysctl.conf" % params.hawq_sysctl_conf
+
+  #Load and apply kernel parameters, override whatever defined and loaded from /etc/sysctl.conf
+  command = "sysctl -e -p ".format(params.hawq_sysctl_conf)
   Execute(command, timeout=600)
 
-  overcommit_memory = "vm.overcommit_memory"
-  sysctl_conf_file = "/etc/sysctl.conf"
-  command = "sed -i '/{0}/d' {1} && echo '{0} = {2}' >> {1} && sysctl -e -p".format(overcommit_memory, sysctl_conf_file, params.sysctl_vm_overcommit_memory)
-  Execute(command, timeout=600)
-
+  #Ensure limits directory exists
   Directory(params.limits_conf_dir,
             recursive=True,
             owner='root',
             group='root'
   )
 
+  #Generate limits for hawq user, all processes under this user will use those limits
   File('{0}/{1}.conf'.format(params.limits_conf_dir, params.hawq_user),
      content=Template("hawq.limits.conf.j2"),
      owner=params.hawq_user,
