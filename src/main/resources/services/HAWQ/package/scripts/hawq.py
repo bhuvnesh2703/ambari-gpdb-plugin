@@ -53,7 +53,7 @@ def set_osparams(env):
      group=params.hawq_group)
 
   #Load and apply kernel parameters, override whatever defined and loaded from /etc/sysctl.conf
-  command = "sysctl -e -p ".format(params.hawq_sysctl_conf)
+  command = "sysctl -e -p {0}".format(params.hawq_sysctl_conf)
   Execute(command, timeout=600)
 
   #Ensure limits directory exists
