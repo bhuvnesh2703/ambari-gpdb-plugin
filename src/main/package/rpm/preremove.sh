@@ -11,14 +11,27 @@ def updateRepoWithPads(repoinfoxml):
   tree = ET.parse(repoinfoxml)
   root = tree.getroot()
 
+  # Traverse repo tags to find out PADS is defined
   for os_tag in root.findall('.//os'):
-    if os_tag.attrib['type'] == 'redhat6':
+    # os tag can be
+    # <os family="redhat6">  <-- Ambari 2.0 or after
+    # <os type="redhat6">  <-- prior to Ambari 2.0
+    # See https://issues.apache.org/jira/browse/AMBARI-6270
+    os_family = None
+    if 'type' in os_tag.attrib:
+      os_family = os_tag.attrib['type']
+    elif 'family' in os_tag.attrib:
+      os_family = os_tag.attrib['family']
+    else:
+      raise Exception("Neither of 'family' or 'tag' attribute is found in <os> tag in " + repoinfoxml)
+
+    if os_family == 'redhat6':
       for repo in os_tag.findall('.//repo'):
         for reponame in repo.findall('.//reponame'):
-          if 'PADS' in reponame.text:
+          if reponame.text == 'PADS':
             is_padsrepo_set = True
             os_tag.remove(repo)
-  if is_padsrepo_set == True:
+  if is_padsrepo_set:
     tree.write(repoinfoxml)
 
 if os.path.exists('/var/lib/ambari-server/resources/stacks/PHD/3.0/role_command_order.json'):
