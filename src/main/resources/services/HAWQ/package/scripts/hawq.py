@@ -6,6 +6,8 @@ import specs
 import os
 import subprocess
 import pwd
+import time
+from collections import OrderedDict
 
 def verify_segments_state(env):
   import params
@@ -46,15 +48,26 @@ def system_verification(env, component):
 
 def set_osparams(env):
   import params
-  #Generate file with kernel parameters needed by hawq
-  File(params.hawq_sysctl_conf,
-     content=Template("hawq.sysctl.conf.j2"),
-     owner=params.hawq_user,
-     group=params.hawq_group)
 
-  #Load and apply kernel parameters, override whatever defined and loaded from /etc/sysctl.conf
-  command = "sysctl -e -p {0}".format(params.hawq_sysctl_conf)
-  Execute(command, timeout=600)
+  if System.get_instance().os_family == "suse":
+    #Update /etc/sysctl.conf
+    update_sysctl_file()
+  else:
+    #Update /etc/sysctl.d/hawq.conf
+    #Ensure sysctl sub-directory exists
+    Directory(params.sysctl_conf_dir,
+            recursive=True,
+            owner='root',
+            group='root')
+
+    #Generate file with kernel parameters needed by hawq
+    File(params.hawq_sysctl_conf,
+       content=Template("hawq.sysctl.conf.j2"),
+       owner=params.hawq_user,
+       group=params.hawq_group)
+
+  #Reload kernel sysctl parameters
+  Execute("sysctl -e -p", timeout=600)
 
   #Ensure limits directory exists
   Directory(params.limits_conf_dir,
@@ -68,6 +81,63 @@ def set_osparams(env):
      content=Template("hawq.limits.conf.j2"),
      owner=params.hawq_user,
      group=params.hawq_group)
+
+def update_sysctl_file(self):
+    try:
+      #Backup file
+      backup_file_name = ("{0}.backup." + str(int(time.time()))).format(params.sysctl_conf)
+      Logger.info("{0} has been backed up to {1}".format(params.sysctl_conf, backup_file_name))
+      backup_command = "cp {0} {1}".format(params.sysctl_conf, backup_file_name)
+      Execute(backup_command, timeout=600)
+
+      #Generate file with kernel parameters needed by hawq to temp file
+      File(params.hawq_sysctl_conf_tmp,
+         content=Template("hawq.sysctl.conf.j2"),
+         owner=params.hawq_user,
+         group=params.hawq_group)
+
+      sysctl_file = open(sysctl_conf, "r+")
+      sysctl_file_lines = sysctl_file.readlines()
+      #Parse configuration file as dictionary
+      sysctl_file_dict = OrderedDict()
+      for line in sysctl_file_lines:
+        try:
+          if "=" in line:
+            sysctl_file_dict[line.split("=")[0]] = line.split("=")[1]
+          else:
+            sysctl_file_dict[line]=None
+        except Exception as e:
+          Logger.warn("Failed to process line "  + line)
+          Logger.warn(str(e))
+
+      hawq_sysctl_file = open(params.hawq_sysctl_conf_tmp, "r")
+      #Merge sysctl.conf with hawq.conf
+      for line in hawq_sysctl_file:
+        line = line.strip()
+        if not line.startwith("#"):
+          property_key, property_value = line.split("=")
+          #Merge hawq properties with system properties
+          sysctl_file_dict[property_key] = property_value
+
+      #Write merged properties to file
+      sysctl_file.seek(0)
+      for property_key, property_value in sysctl_file_dict:
+        if property_value is not None:
+          sysctl_file.write("{0}={1}\n".format(property_key, property_val))
+        else:
+          sysctl_file.write(property_key + "\n")
+      sysctl_file.truncate()
+    except Exception as e:
+      Logger.error("Error occurred while updating sysctl.conf file " + str(e))
+      Logger.info("Restoring file {0} from {1}".format(params.sysctl_conf, backup_file_name))
+      restore_file_command = "mv {0} {1}".format(backup_file_name, params.sysctl_conf)
+      Execute(restore_file_command, timeout=600)
+      raise Fail("Error occurred while updating sysctl.conf file " + str(e))
+    finally:
+      sysctl_file.close()
+      hawq_sysctl_file.close()
+      #Wipe out temp file
+      File(params.hawq_sysctl_conf_tmp, action = 'delete')
 
 def common_setup(env):
   import params
