@@ -16,12 +16,12 @@ def extractOsFamily(os_tag):
   if 'family' in os_tag.attrib:
     return os_tag.attrib['family']
 
-  raise Exception("Neither of 'family' or 'tag' attribute is found in <os> tag in " + repoinfoxml)
+  raise Exception("Neither 'family' nor 'tag' attribute is found in <os> tag in " + repoinfoxml)
 
 
 def updateRepoWithPads(repoinfoxml):
-  pads_repo='PADS'
-  pads_element = ET.fromstring('<repo><baseurl>http://' + socket.getfqdn() + '/' + pads_repo + '</baseurl><repoid>' + pads_repo + '</repoid><reponame>' + pads_repo + '</reponame></repo>')
+  PADS_REPO_NAME='PADS'
+  pads_element = ET.fromstring('<repo><baseurl>http://' + socket.getfqdn() + '/' + PADS_REPO_NAME + '</baseurl><repoid>' + PADS_REPO_NAME + '</repoid><reponame>' + PADS_REPO_NAME + '</reponame></repo>')
   is_padsrepo_modified = False
 
   tree = ET.parse(repoinfoxml)
@@ -30,10 +30,10 @@ def updateRepoWithPads(repoinfoxml):
   for os_tag in root.findall('.//os'):
     os_family = extractOsFamily(os_tag)
 
-    if os_family == 'redhat6' or os_family == 'suse11':
+    if os_family in ['redhat6', 'suse11']:
       is_pads_found = False
       for reponame in os_tag.findall('.//reponame'):
-        if reponame.text == 'PADS':
+        if reponame.text == PADS_REPO_NAME:
           is_pads_found = True
           break
 

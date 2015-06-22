@@ -16,7 +16,7 @@ def extractOsFamily(os_tag):
   if 'family' in os_tag.attrib:
     return os_tag.attrib['family']
 
-  raise Exception("Neither of 'family' or 'tag' attribute is found in <os> tag in " + repoinfoxml)
+  raise Exception("Neither 'family' nor 'tag' attribute is found in <os> tag in " + repoinfoxml)
 
 def updateRepoWithPads(repoinfoxml):
   is_padsrepo_modified = False
@@ -28,7 +28,7 @@ def updateRepoWithPads(repoinfoxml):
   for os_tag in root.findall('.//os'):
     os_family = extractOsFamily(os_tag)
 
-    if os_family == 'redhat6':
+    if os_family in ['redhat6', 'suse11']:
       for repo in os_tag.findall('.//repo'):
         for reponame in repo.findall('.//reponame'):
           if reponame.text == 'PADS':
