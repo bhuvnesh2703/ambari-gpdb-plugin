@@ -33,7 +33,7 @@ def updateRepoWithPads(repoinfoxml):
     if os_family in ['redhat6', 'suse11']:
       is_pads_found = False
       for reponame in os_tag.findall('.//reponame'):
-        if reponame.text == PADS_REPO_NAME:
+        if PADS_REPO_NAME in reponame.text:
           is_pads_found = True
           break
 

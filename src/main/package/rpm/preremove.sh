@@ -31,7 +31,7 @@ def updateRepoWithPads(repoinfoxml):
     if os_family in ['redhat6', 'suse11']:
       for repo in os_tag.findall('.//repo'):
         for reponame in repo.findall('.//reponame'):
-          if reponame.text == 'PADS':
+          if 'PADS' in reponame.text:
             is_padsrepo_modified = True
             os_tag.remove(repo)
 
