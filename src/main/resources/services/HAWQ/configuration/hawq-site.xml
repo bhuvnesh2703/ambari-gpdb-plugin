@@ -66,7 +66,7 @@
   <property>
     <name>sysctl.vm.overcommit_memory</name>
     <value>2</value>
-    <description>Set system parameter vm.overcommit_memory</description>
+    <description>Set to 0 on small memory machines. 2 is recommended for production.</description>
   </property>
 
 </configuration>

@@ -48,6 +48,7 @@ def system_verification(env, component):
 def set_osparams(env):
   import params
   if System.get_instance().os_family == "suse":
+    #Update /etc/sysctl.conf
     update_sysctl_file_suse()
   else:
     #Update /etc/sysctl.d/hawq.conf
