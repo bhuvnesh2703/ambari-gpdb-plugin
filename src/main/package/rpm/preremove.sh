@@ -5,20 +5,37 @@ import json, os, socket
 import xml.etree.ElementTree as ET
 from pprint import pprint
 
+def extractOsFamily(os_tag):
+  # os tag can be
+  # <os family="redhat6">  <-- Ambari 2.0 or after
+  # <os type="redhat6">  <-- prior to Ambari 2.0
+  # See https://issues.apache.org/jira/browse/AMBARI-6270
+  if 'type' in os_tag.attrib:
+    return os_tag.attrib['type']
+
+  if 'family' in os_tag.attrib:
+    return os_tag.attrib['family']
+
+  raise Exception("Neither 'family' nor 'tag' attribute is found in <os> tag in " + repoinfoxml)
+
 def updateRepoWithPads(repoinfoxml):
-  is_padsrepo_set = None
+  is_padsrepo_modified = False
 
   tree = ET.parse(repoinfoxml)
   root = tree.getroot()
 
+  # Traverse repo tags to find out PADS is defined
   for os_tag in root.findall('.//os'):
-    if os_tag.attrib['type'] == 'redhat6':
+    os_family = extractOsFamily(os_tag)
+
+    if os_family in ['redhat6', 'suse11']:
       for repo in os_tag.findall('.//repo'):
         for reponame in repo.findall('.//reponame'):
           if 'PADS' in reponame.text:
-            is_padsrepo_set = True
+            is_padsrepo_modified = True
             os_tag.remove(repo)
-  if is_padsrepo_set == True:
+
+  if is_padsrepo_modified:
     tree.write(repoinfoxml)
 
 if os.path.exists('/var/lib/ambari-server/resources/stacks/PHD/3.0/role_command_order.json'):
