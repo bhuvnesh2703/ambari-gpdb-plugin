@@ -65,7 +65,7 @@
 
   <property>
     <name>sysctl.vm.overcommit_memory</name>
-    <value>1</value>
+    <value>2</value>
     <description>Set system parameter vm.overcommit_memory</description>
   </property>
 
