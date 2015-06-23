@@ -49,7 +49,7 @@
           <name>HAWQSTANDBY</name>
           <displayName>HAWQ Standby Master</displayName>
           <category>MASTER</category>
-          <cardinality>1</cardinality>
+          <cardinality>0-1</cardinality>
           <commandScript>
               <script>scripts/hawqstandby.py</script>
               <scriptType>PYTHON</scriptType>

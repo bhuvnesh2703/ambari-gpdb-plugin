@@ -39,7 +39,8 @@ if config["commandType"] == 'EXECUTION_COMMAND':
   if security_enabled:
     _nn_principal_name = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
 
-  if config["clusterHostInfo"]["hawqstandby_hosts"] and len(config["clusterHostInfo"]["hawqstandby_hosts"]) > 0:
+  if "hawqstandby_hosts" in config["clusterHostInfo"]: # existsance of the key should be explicitly checked. Otherwise, (like 'if config["clusterHostInfo"]["hawqstandby_hosts"]:') throws an error from config_dictionary.py's UnknownConfiguration class
+    if len(config["clusterHostInfo"]["hawqstandby_hosts"]) > 0:
       hawq_standby = config["clusterHostInfo"]["hawqstandby_hosts"][0]
 
   hawq_password = "gpadmin"
