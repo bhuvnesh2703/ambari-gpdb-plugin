@@ -7,7 +7,6 @@ import os
 import subprocess
 import pwd
 import time
-from collections import OrderedDict
 
 def verify_segments_state(env):
   import params
@@ -48,26 +47,11 @@ def system_verification(env, component):
 
 def set_osparams(env):
   import params
-
   if System.get_instance().os_family == "suse":
-    #Update /etc/sysctl.conf
-    update_sysctl_file()
+    update_sysctl_file_suse()
   else:
     #Update /etc/sysctl.d/hawq.conf
-    #Ensure sysctl sub-directory exists
-    Directory(params.sysctl_conf_dir,
-            recursive=True,
-            owner='root',
-            group='root')
-
-    #Generate file with kernel parameters needed by hawq
-    File(params.hawq_sysctl_conf,
-       content=Template("hawq.sysctl.conf.j2"),
-       owner=params.hawq_user,
-       group=params.hawq_group)
-
-  #Reload kernel sysctl parameters
-  Execute("sysctl -e -p", timeout=600)
+    update_sysctl_file()
 
   #Ensure limits directory exists
   Directory(params.limits_conf_dir,
@@ -82,10 +66,28 @@ def set_osparams(env):
      owner=params.hawq_user,
      group=params.hawq_group)
 
-def update_sysctl_file(self):
+def update_sysctl_file():
+  import params
+  #Ensure sys ctl sub-directory exists
+  Directory(params.sysctl_conf_dir,
+    recursive=True,
+    owner='root',
+    group='root')
+
+  #Generate file with kernel parameters needed by hawq
+  File(params.hawq_sysctl_conf,
+    content=Template("hawq.sysctl.conf.j2"),
+    owner=params.hawq_user,
+    group=params.hawq_group)
+
+  #Reload kernel sysctl parameters from hawq file. On system reboot this file will be automatically loaded.
+  Execute("sysctl -e -p {0}".format(params.hawq_sysctl_conf), timeout=600)
+
+def update_sysctl_file_suse():
+    import params
     try:
       #Backup file
-      backup_file_name = ("{0}.backup." + str(int(time.time()))).format(params.sysctl_conf)
+      backup_file_name = params.hawq_sysctl_conf_backup.format(str(int(time.time())))
       Logger.info("{0} has been backed up to {1}".format(params.sysctl_conf, backup_file_name))
       backup_command = "cp {0} {1}".format(params.sysctl_conf, backup_file_name)
       Execute(backup_command, timeout=600)
@@ -96,10 +98,11 @@ def update_sysctl_file(self):
          owner=params.hawq_user,
          group=params.hawq_group)
 
-      sysctl_file = open(sysctl_conf, "r+")
+      sysctl_file = open(params.sysctl_conf, "rw+")
       sysctl_file_lines = sysctl_file.readlines()
+
       #Parse configuration file as dictionary
-      sysctl_file_dict = OrderedDict()
+      sysctl_file_dict = dict()
       for line in sysctl_file_lines:
         try:
           if "=" in line:
@@ -107,26 +110,33 @@ def update_sysctl_file(self):
           else:
             sysctl_file_dict[line]=None
         except Exception as e:
-          Logger.warn("Failed to process line "  + line)
-          Logger.warn(str(e))
+          Logger.info("Failed to process line "  + line)
+          Logger.info(str(e))
 
       hawq_sysctl_file = open(params.hawq_sysctl_conf_tmp, "r")
+      hawq_sysctl_lines = hawq_sysctl_file.readlines()
+      
       #Merge sysctl.conf with hawq.conf
-      for line in hawq_sysctl_file:
+      for line in hawq_sysctl_lines:
         line = line.strip()
-        if not line.startwith("#"):
-          property_key, property_value = line.split("=")
-          #Merge hawq properties with system properties
-          sysctl_file_dict[property_key] = property_value
-
+        if not line.startswith("#"):
+          if "=" in line:
+            property_key, property_value = line.split("=")
+            #Merge hawq properties with system properties
+            sysctl_file_dict[property_key.strip()] = property_value.strip()
+          else:
+            property_key = line
+            sysctl_file_dict[property_key] = None
       #Write merged properties to file
       sysctl_file.seek(0)
-      for property_key, property_value in sysctl_file_dict:
+      for property_key, property_value in sysctl_file_dict.items():
         if property_value is not None:
-          sysctl_file.write("{0}={1}\n".format(property_key, property_val))
+          sysctl_file.write("{0}={1}\n".format(property_key, property_value))
         else:
           sysctl_file.write(property_key + "\n")
       sysctl_file.truncate()
+      #Reload kernel sysctl parameters from /etc/sysctl.conf
+      Execute("sysctl -e -p", timeout=600)
     except Exception as e:
       Logger.error("Error occurred while updating sysctl.conf file " + str(e))
       Logger.info("Restoring file {0} from {1}".format(params.sysctl_conf, backup_file_name))

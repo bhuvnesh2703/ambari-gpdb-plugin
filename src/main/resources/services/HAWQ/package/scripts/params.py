@@ -21,6 +21,7 @@ sysctl_conf_dir = "/etc/sysctl.d"
 sysctl_conf = "/etc/sysctl.conf"
 hawq_sysctl_conf = "{0}/hawq.conf".format(sysctl_conf_dir)
 hawq_sysctl_conf_tmp = "/tmp/hawq.conf"
+hawq_sysctl_conf_backup = "/tmp/sysctl.conf.backup.{0}"
 
 if config["commandType"] == 'EXECUTION_COMMAND':
   hdfs_superuser  = config["configurations"]["hdfs-site"]["dfs.cluster.administrators"].strip()
