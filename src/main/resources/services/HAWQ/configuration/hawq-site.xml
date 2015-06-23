@@ -66,7 +66,7 @@
   <property>
     <name>sysctl.vm.overcommit_memory</name>
     <value>2</value>
-    <description>Set to 0 on small memory machines. 2 is recommended for production.</description>
+    <description>Set this value to 0 for single node clusters or machines with less memory (16 GB or less). Set the value to 2 for production machines with large memory.</description>
   </property>
 
 </configuration>
