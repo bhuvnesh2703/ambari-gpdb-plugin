@@ -57,6 +57,7 @@ def set_osparams(env):
   update_limits_file()
 
 def update_limits_file():
+  import params
   #Ensure limits directory exists
   Directory(params.limits_conf_dir,
             recursive=True,
