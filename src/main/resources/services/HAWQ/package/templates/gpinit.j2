@@ -51,9 +51,9 @@ ENCODING=UNICODE
 ################################################
 
 {% if ha_enabled %}
-DFS_URL={{_nn_dfs_nameservices}}/hawq_data
+DFS_URL={{_nn_dfs_nameservices}}{{hawq_hdfs_data_dir}}
 {% else %}
-DFS_URL={{dfs_url}}/hawq_data
+DFS_URL={{dfs_url}}{{hawq_hdfs_data_dir}}
 {% endif %}
 
 DFS_NAME=hdfs
