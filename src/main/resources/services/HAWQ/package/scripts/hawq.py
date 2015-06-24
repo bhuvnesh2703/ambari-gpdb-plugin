@@ -54,6 +54,9 @@ def set_osparams(env):
     #Update /etc/sysctl.d/hawq.conf
     update_sysctl_file()
 
+  update_limits_file()
+
+def update_limits_file():
   #Ensure limits directory exists
   Directory(params.limits_conf_dir,
             recursive=True,
@@ -76,22 +79,22 @@ def update_sysctl_file():
     group='root')
 
   #Generate file with kernel parameters needed by hawq
-  File(params.hawq_sysctl_conf,
+  File("{0}/hawq.conf".format(params.sysctl_conf_dir),
     content=Template("hawq.sysctl.conf.j2"),
     owner=params.hawq_user,
     group=params.hawq_group)
 
   #Reload kernel sysctl parameters from hawq file. On system reboot this file will be automatically loaded.
-  Execute("sysctl -e -p {0}".format(params.hawq_sysctl_conf), timeout=600)
+  Execute("sysctl -e -p {0}/hawq.conf".format(params.sysctl_conf_dir), timeout=600)
 
 def update_sysctl_file_suse():
     import params
     try:
       #Backup file
       backup_file_name = params.hawq_sysctl_conf_backup.format(str(int(time.time())))
-      Logger.info("{0} has been backed up to {1}".format(params.sysctl_conf, backup_file_name))
       backup_command = "cp {0} {1}".format(params.sysctl_conf, backup_file_name)
       Execute(backup_command, timeout=600)
+      Logger.info("{0} has been backed up to {1}".format(params.sysctl_conf, backup_file_name))
 
       #Generate file with kernel parameters needed by hawq to temp file
       File(params.hawq_sysctl_conf_tmp,
@@ -104,30 +107,13 @@ def update_sysctl_file_suse():
 
       #Parse configuration file as dictionary
       sysctl_file_dict = dict()
-      for line in sysctl_file_lines:
-        try:
-          if "=" in line:
-            sysctl_file_dict[line.split("=")[0]] = line.split("=")[1]
-          else:
-            sysctl_file_dict[line]=None
-        except Exception as e:
-          Logger.info("Failed to process line "  + line)
-          Logger.info(str(e))
-
-      hawq_sysctl_file = open(params.hawq_sysctl_conf_tmp, "r")
-      hawq_sysctl_lines = hawq_sysctl_file.readlines()
+      merge_lines_to_dict(sysctl_file_dict, sysctl_file_lines)
       
       #Merge sysctl.conf with hawq.conf
-      for line in hawq_sysctl_lines:
-        line = line.strip()
-        if not line.startswith("#"):
-          if "=" in line:
-            property_key, property_value = line.split("=")
-            #Merge hawq properties with system properties
-            sysctl_file_dict[property_key.strip()] = property_value.strip()
-          else:
-            property_key = line
-            sysctl_file_dict[property_key] = None
+      hawq_sysctl_file = open(params.hawq_sysctl_conf_tmp, "r")
+      hawq_sysctl_lines = hawq_sysctl_file.readlines()
+      merge_lines_to_dict(sysctl_file_dict, hawq_sysctl_lines)
+
       #Write merged properties to file
       sysctl_file.seek(0)
       for property_key, property_value in sysctl_file_dict.items():
@@ -136,6 +122,7 @@ def update_sysctl_file_suse():
         else:
           sysctl_file.write(property_key + "\n")
       sysctl_file.truncate()
+
       #Reload kernel sysctl parameters from /etc/sysctl.conf
       Execute("sysctl -e -p", timeout=600)
     except Exception as e:
@@ -149,6 +136,29 @@ def update_sysctl_file_suse():
       hawq_sysctl_file.close()
       #Wipe out temp file
       File(params.hawq_sysctl_conf_tmp, action = 'delete')
+
+def merge_lines_to_dict(dictionary, lines):
+  """
+    Merges key-value pairs separated by '=' to given dictionary
+    If line is not key-value pair separated by '=' it puts whole line as a key and None as value
+
+    Example:
+      dictionary = {'key1' : 'val1', 'key2' : 'val1'}
+      lines = ['key1=val2', 'key3=val1', '#Just some comment']
+
+      merge_lines_to_dict(dictionary, lines)
+      dictionary = {'key1' : 'val2', 'key2' : 'val1', 'key3' : 'val1', '#Just some comment' : None}
+  """
+  for line in lines:
+    try:
+      line = line.strip()
+      if "=" in line:
+        dictionary[line.split("=")[0].strip()] = line.split("=")[1].strip()
+      else:
+        dictionary[line]=None
+    except Exception as e:
+      Logger.info("Failed to process line "  + line)
+      Logger.info(str(e))
 
 def common_setup(env):
   import params
