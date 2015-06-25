@@ -47,6 +47,8 @@ def system_verification(env, component):
 
 def set_osparams(env):
   import params
+  #Suse doesn't supports loading values from files in /etc/sysctl.d
+  #Very few customers have Suse, so this should not affect most of customers
   if System.get_instance().os_family == "suse":
     #Update /etc/sysctl.conf
     update_sysctl_file_suse()
@@ -93,9 +95,9 @@ def update_sysctl_file_suse():
     try:
       #Backup file
       backup_file_name = params.hawq_sysctl_conf_backup.format(str(int(time.time())))
-      backup_command = "cp {0} {1}".format(params.sysctl_conf, backup_file_name)
+      backup_command = "cp {0} {1}".format(params.sysctl_conf_suse, backup_file_name)
       Execute(backup_command, timeout=600)
-      Logger.info("{0} has been backed up to {1}".format(params.sysctl_conf, backup_file_name))
+      Logger.info("{0} has been backed up to {1}".format(params.sysctl_conf_suse, backup_file_name))
 
       #Generate file with kernel parameters needed by hawq to temp file
       File(params.hawq_sysctl_conf_tmp,
@@ -103,7 +105,7 @@ def update_sysctl_file_suse():
          owner=params.hawq_user,
          group=params.hawq_group)
 
-      sysctl_file = open(params.sysctl_conf, "rw+")
+      sysctl_file = open(params.sysctl_conf_suse, "rw+")
       sysctl_file_lines = sysctl_file.readlines()
 
       #Parse configuration file as dictionary
@@ -128,8 +130,8 @@ def update_sysctl_file_suse():
       Execute("sysctl -e -p", timeout=600)
     except Exception as e:
       Logger.error("Error occurred while updating sysctl.conf file " + str(e))
-      Logger.info("Restoring file {0} from {1}".format(params.sysctl_conf, backup_file_name))
-      restore_file_command = "mv {0} {1}".format(backup_file_name, params.sysctl_conf)
+      Logger.info("Restoring file {0} from {1}".format(params.sysctl_conf_suse, backup_file_name))
+      restore_file_command = "mv {0} {1}".format(backup_file_name, params.sysctl_conf_suse)
       Execute(restore_file_command, timeout=600)
       raise Fail("Error occurred while updating sysctl.conf file " + str(e))
     finally:
@@ -141,22 +143,20 @@ def update_sysctl_file_suse():
 def merge_lines_to_dict(dictionary, lines):
   """
     Merges key-value pairs separated by '=' to given dictionary
-    If line is not key-value pair separated by '=' it puts whole line as a key and None as value
+    If line is not key-value pair separated by '=' function ignores it
 
     Example:
       dictionary = {'key1' : 'val1', 'key2' : 'val1'}
       lines = ['key1=val2', 'key3=val1', '#Just some comment']
 
       merge_lines_to_dict(dictionary, lines)
-      dictionary = {'key1' : 'val2', 'key2' : 'val1', 'key3' : 'val1', '#Just some comment' : None}
+      dictionary = {'key1' : 'val2', 'key2' : 'val1', 'key3' : 'val1'}
   """
   for line in lines:
     try:
       line = line.strip()
       if "=" in line:
         dictionary[line.split("=")[0].strip()] = line.split("=")[1].strip()
-      else:
-        dictionary[line]=None
     except Exception as e:
       Logger.info("Failed to process line "  + line)
       Logger.info(str(e))

@@ -18,7 +18,10 @@ hawq_gphome     = '/usr/local/hawq'
 hawq_bashrc      = "{0}/etc/hawq.bashrc".format(hawq_gphome)
 limits_conf_dir = "/etc/security/limits.d"
 sysctl_conf_dir = "/etc/sysctl.d"
-sysctl_conf = "/etc/sysctl.conf"
+
+#Suse doesn't support loading values from /etc/sysctl.d, that is why we are touching this system level file
+sysctl_conf_suse = "/etc/sysctl.conf"
+
 hawq_sysctl_conf_tmp = "/tmp/hawq.conf"
 hawq_sysctl_conf_backup = "/etc/sysctl.conf.backup.{0}"
 
