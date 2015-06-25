@@ -14,11 +14,16 @@ hawq_master_dbid_path_suffix = '/gpseg-1/gp_dbid'
 hawq_tmp_dir    = '/tmp/hawq/'
 hawq_user       = 'gpadmin'
 hawq_group      = 'gpadmin'
-hawq_gphome     = '/usr/local/hawq/'
-hawq_sysctl_conf = "{0}/etc/hawq.sysctl.conf".format(hawq_gphome)
-hawq_limits_conf = "{0}/etc/hawq.limits.conf".format(hawq_gphome)
+hawq_gphome     = '/usr/local/hawq'
 hawq_bashrc      = "{0}/etc/hawq.bashrc".format(hawq_gphome)
-sysctl_vm_overcommit_memory = '1'
+limits_conf_dir = "/etc/security/limits.d"
+sysctl_conf_dir = "/etc/sysctl.d"
+
+#Suse doesn't support loading values from /etc/sysctl.d, that is why we are touching this system level file
+sysctl_conf_suse = "/etc/sysctl.conf"
+
+hawq_sysctl_conf_tmp = "/tmp/hawq.conf"
+hawq_sysctl_conf_backup = "/etc/sysctl.conf.backup.{0}"
 
 if config["commandType"] == 'EXECUTION_COMMAND':
   hdfs_superuser  = config["configurations"]["hdfs-site"]["dfs.cluster.administrators"].strip()
