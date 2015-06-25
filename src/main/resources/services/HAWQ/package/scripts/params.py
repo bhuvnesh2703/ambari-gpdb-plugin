@@ -21,8 +21,6 @@ hawq_limits_conf = "{0}/etc/hawq.limits.conf".format(hawq_gphome)
 hawq_bashrc      = "{0}/etc/hawq.bashrc".format(hawq_gphome)
 sysctl_vm_overcommit_memory = '1'
 
-gpadmin_home = os.path.expanduser('~gpadmin')
-
 if config["commandType"] == 'EXECUTION_COMMAND':
   hdfs_superuser  = config["configurations"]["hdfs-site"]["dfs.cluster.administrators"].strip()
   dfs_url       = config["configurations"]["core-site"]["fs.defaultFS"].replace("hdfs://", "")
