@@ -108,14 +108,20 @@ def update_sysctl_file_suse():
       sysctl_file = open(params.sysctl_conf_suse, "rw+")
       sysctl_file_lines = sysctl_file.readlines()
 
-      #Parse configuration file as dictionary
       sysctl_file_dict = dict()
-      merge_lines_to_dict(sysctl_file_dict, sysctl_file_lines)
-      
+      #Filter lines, leave only key=values items
+      sysctl_file_lines = [item for item in sysctl_file_lines if '=' in item]
+      #Convert key=value list to dictionary
+      sysctl_file_dict = {key:value for key, value in (item.split('=') for item in sysctl_file_lines)}
+
       #Merge sysctl.conf with hawq.conf
       hawq_sysctl_file = open(params.hawq_sysctl_conf_tmp, "r")
       hawq_sysctl_lines = hawq_sysctl_file.readlines()
-      merge_lines_to_dict(sysctl_file_dict, hawq_sysctl_lines)
+      #Convert key=value list to dictionary
+      hawq_sysctl_dict = {key:value for key, value in (item.split('=') for item in hawq_sysctl_lines)}
+
+      #Merge common system file with hawq specific file
+      sysctl_file_dict.update(hawq_sysctl_dict)
 
       #Write merged properties to file
       sysctl_file.seek(0)
@@ -139,27 +145,6 @@ def update_sysctl_file_suse():
       hawq_sysctl_file.close()
       #Wipe out temp file
       File(params.hawq_sysctl_conf_tmp, action = 'delete')
-
-def merge_lines_to_dict(dictionary, lines):
-  """
-    Merges key-value pairs separated by '=' to given dictionary
-    If line is not key-value pair separated by '=' function ignores it
-
-    Example:
-      dictionary = {'key1' : 'val1', 'key2' : 'val1'}
-      lines = ['key1=val2', 'key3=val1', '#Just some comment']
-
-      merge_lines_to_dict(dictionary, lines)
-      dictionary = {'key1' : 'val2', 'key2' : 'val1', 'key3' : 'val1'}
-  """
-  for line in lines:
-    try:
-      line = line.strip()
-      if "=" in line:
-        dictionary[line.split("=")[0].strip()] = line.split("=")[1].strip()
-    except Exception as e:
-      Logger.info("Failed to process line "  + line)
-      Logger.info(str(e))
 
 def common_setup(env):
   import params
