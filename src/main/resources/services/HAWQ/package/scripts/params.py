@@ -1,4 +1,5 @@
 from resource_management import *
+import os
 
 config = Script.get_config()
 
