@@ -3,24 +3,27 @@ Ambari HAWQ plugin
 
 How to install
 --------------------
-You can install hawq plugin onto ambari-server.
+This section describes how to install hawq plugin onto ambari-server.
 
-1. stop ambari-server
+If your Ambari cluster is a single node cluster, there are some extra steps you'd have to follow
+
+1. Stop ambari-server
 1. Make sure you execute setup_repo.sh for both PADS and hawq-plugin
-1. Install the plugin
-   ```
-   sudo yum install -y hawq-plugin
-   ```
-1. start ambari-server
 
+    ```
+    # cd to where PADS.tar and hawq-plugin.tar files are extracted
+    ./setup_repo.sh
+    ```
 
-Whati if you are installing your cluster in a single node.
---------------------
+1. Install the plugin:
+    ```
+    sudo yum install -y hawq-plugin
+    ```
+1. **Single node cluster only** Before starting ambari-server, remove HAWQSTANDBY component from metainfo.xml. See Appendix 1
+1. Start ambari-server
+1. **Single node cluster only** During Cluster Install Wizard, make sure hawq.master.port in hawq-site is changed through Ambari Wizard to 10432 (or anything other than 5432) to avoid a port conflict.
 
-1. Before restarting ambari-server in the installation steps, remove HAWQSTANDBY component from metainfo.xml
-1. During Cluster Install Wizard, make sure hawq.master.port in hawq-site is changed through Ambari Wizard to 10432 (or anything other than 5432) to avoid a port conflict.
-
-#### metainfo.xml change
+#### Appendix 1 What <component> to remove from metainfo.xml
 e.g /var/lib/ambari-server/resources/stacks/PHD/3.0/services/HAWQ/metainfo.xml
 
 ```
