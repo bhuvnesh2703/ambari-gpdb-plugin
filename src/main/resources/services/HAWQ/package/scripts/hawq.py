@@ -112,13 +112,15 @@ def update_sysctl_file_suse():
       #Filter lines, leave only key=values items
       sysctl_file_lines = [item for item in sysctl_file_lines if '=' in item]
       #Convert key=value list to dictionary
-      sysctl_file_dict = {key:value for key, value in (item.split('=') for item in sysctl_file_lines)}
+      sysctl_file_dict = dict(item.split("=") for item in sysctl_file_lines)
 
       #Merge sysctl.conf with hawq.conf
       hawq_sysctl_file = open(params.hawq_sysctl_conf_tmp, "r")
       hawq_sysctl_lines = hawq_sysctl_file.readlines()
+      #Filter lines, leave only key=values items
+      hawq_sysctl_lines = [item for item in hawq_sysctl_lines if '=' in item]
       #Convert key=value list to dictionary
-      hawq_sysctl_dict = {key:value for key, value in (item.split('=') for item in hawq_sysctl_lines)}
+      hawq_sysctl_dict = dict(item.split("=") for item in hawq_sysctl_lines)
 
       #Merge common system file with hawq specific file
       sysctl_file_dict.update(hawq_sysctl_dict)
