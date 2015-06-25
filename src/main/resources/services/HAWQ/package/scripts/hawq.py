@@ -108,7 +108,7 @@ def standby_configure(env):
           owner=params.hawq_user,
           group=params.hawq_group,
           recursive=True)
-    command = "echo {0} > /home/{1}/master-dir".format(params.hawq_master_dir, params.hawq_user)
+    command = "echo {0} > {1}/master-dir".format(params.hawq_master_dir, params.GPADMIN_HOME)
     Execute(command, user=params.hawq_user, timeout=600)
 
 def master_configure(env):
@@ -137,10 +137,10 @@ def master_configure(env):
      content=Template("hawq.bashrc.j2"),
      owner=params.hawq_user,
      group=params.hawq_group)
-  command = "cat %s >> /home/gpadmin/.bashrc" % params.hawq_bashrc
+  command = "cat {0} >> {1}/.bashrc".format(params.hawq_bashrc, params.GPADMIN_HOME)
   Execute(command, user=params.hawq_user, timeout=600)
 
-  command = "echo {0} > /home/{1}/master-dir".format(params.hawq_master_dir, params.hawq_user)
+  command = "echo {0} > {1}/master-dir".format(params.hawq_master_dir, params.GPADMIN_HOME)
   Execute(command, user=params.hawq_user, timeout=600)
 
 def master_dbinit(env=None):
@@ -279,7 +279,7 @@ def segment_configure(env=None):
   # Write hawq segment directory in an output file with each directory in a new line
   # Example : Input = /data1/hawq/segment /data2/hawq/segment
   #           Output file will contain 2 lines each holding one directory present in the input 
-  command = "echo -e {0} > /home/{1}/segments-dir".format("\\\\n".join(params.hawq_data_dir.split()), params.hawq_user)
+  command = "echo -e {0} > {1}/segments-dir".format("\\\\n".join(params.hawq_data_dir.split()), params.GPADMIN_HOME)
   Execute(command, user=params.hawq_user, timeout=600)
 
 def try_activate_standby(env):

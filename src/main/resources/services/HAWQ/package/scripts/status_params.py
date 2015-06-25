@@ -5,8 +5,8 @@ from resource_management import *
 
 master_dir = params.hawq_master_dir
 segments_dir = params.hawq_data_dir
-master_dir_file = "/home/{0}/master-dir".format(params.hawq_user)
-segments_dir_file = "/home/{0}/segments-dir".format(params.hawq_user)
+master_dir_file = "{0}/master-dir".format(params.GPADMIN_HOME)
+segments_dir_file = "{0}/segments-dir".format(params.GPADMIN_HOME)
 if os.path.isfile(master_dir_file):
   with open(master_dir_file, 'r') as f:
     master_dir = f.readline().strip()
