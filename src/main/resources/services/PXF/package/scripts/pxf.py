@@ -19,7 +19,7 @@ def init(env):
   command = "service pxf-service init && usermod -s /bin/bash %s" % params.pxf_user
   Execute(command, timeout=600)
 
-  # Ensure that the permission of the instance directory is correct
+  # Ensure that instance directory is owned by pxf:pxf. Once `pxf-service init` adds this feature we can remove it from here
   command = "chown {0}:{0} -R {1}".format(params.pxf_user, params.tcserver_instance_dir)
   Execute(command, timeout=600)
 
