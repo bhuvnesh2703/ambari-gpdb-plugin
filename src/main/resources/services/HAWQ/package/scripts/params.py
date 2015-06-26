@@ -11,6 +11,7 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 hawq_master_dir = '/data/hawq/master'
 hawq_data_dir   = '/data/hawq/segments'
+hawq_hdfs_data_dir = '/hawq_data'
 hawq_master_dbid_path_suffix = '/gpseg-1/gp_dbid'
 hawq_tmp_dir    = '/tmp/hawq/'
 hawq_user       = 'gpadmin'
@@ -68,6 +69,9 @@ if config["commandType"] == 'EXECUTION_COMMAND':
 
     if hawq_site_config.get("hawq.data.directory"):
       hawq_data_dir = hawq_site_config.get("hawq.data.directory").strip()
+      
+    if hawq_site_config.get("hawq.hdfs.data.directory"):
+      hawq_hdfs_data_dir = hawq_site_config.get("hawq.hdfs.data.directory").strip()
 
     if hawq_site_config.get("hawq.cluster.name"):
       hawq_cluster_name = hawq_site_config.get("hawq.cluster.name")

@@ -233,13 +233,13 @@ def master_dbinit(env=None):
     if params.security_enabled:
       kinit = "/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;"
       cmd_setup_dir = "hdfs dfs -mkdir -p /user/gpadmin && hdfs dfs -chown -R gpadmin:gpadmin /user/gpadmin && hdfs dfs -chmod 777 /user/gpadmin;"
-      cmd_setup_dir += "hdfs dfs -mkdir -p /hawq_data && hdfs dfs -chown -R postgres:gpadmin /hawq_data && hdfs dfs -chmod 755 /hawq_data;"
+      cmd_setup_dir += "hdfs dfs -mkdir -p {0} && hdfs dfs -chown -R postgres:gpadmin {0} && hdfs dfs -chmod 755 {0};".format(params.hawq_hdfs_data_dir)
       command = kinit+cmd_setup_dir
       Execute(command, user=params.hdfs_superuser, timeout=600)
     else:
-      # create the hawq_data directory first
-      cmd_hawq_data_dir =  "hdfs dfs -mkdir -p /hawq_data && hdfs dfs -chown -R gpadmin:gpadmin /hawq_data && hdfs dfs -chmod 755 /hawq_data;"
-      Execute(cmd_hawq_data_dir, user=params.hdfs_superuser, timeout=600)
+      # create the hawq_hdfs_data_dir directory first
+      cmd_hawq_hdfs_data_dir =  "hdfs dfs -mkdir -p {0} && hdfs dfs -chown -R gpadmin:gpadmin {0} && hdfs dfs -chmod 755 {0};".format(params.hawq_hdfs_data_dir)
+      Execute(cmd_hawq_hdfs_data_dir, user=params.hdfs_superuser, timeout=600)
 
     # ex-keys with segment hosts
     source = "source /usr/local/hawq/greenplum_path.sh;"
@@ -323,7 +323,7 @@ def set_security():
       set_postgresql_conf('off')
     kinit = " "
     owner = "gpadmin:gpadmin"
-  cmd_setup_dir = "hdfs dfs -chown -R {0} /hawq_data".format(owner)
+  cmd_setup_dir = "hdfs dfs -chown -R {0} {1}".format(owner, params.hawq_hdfs_data_dir)
   command = kinit+cmd_setup_dir
   Execute(command, user=params.hdfs_superuser, timeout=600)
 
