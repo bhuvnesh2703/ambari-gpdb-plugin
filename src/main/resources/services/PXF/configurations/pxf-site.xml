@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<configuration supports_final="true">
+
+  <property>
+    <name>pxf.keytab.file</name>
+    <value>/etc/security/keytabs/pxf.service.keytab</value>
+    <description>Path to keytab file (on each PXF client node) owned by pxf service when secure HDFS is enabled</description>
+  </property>
+
+</configuration>
