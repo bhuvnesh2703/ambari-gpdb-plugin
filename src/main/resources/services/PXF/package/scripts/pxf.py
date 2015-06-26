@@ -19,6 +19,10 @@ def init(env):
   command = "service pxf-service init && usermod -s /bin/bash %s" % params.pxf_user
   Execute(command, timeout=600)
 
+  # Ensure that the permission of the instance directory is correct
+  command = "chown {0}:{0} -R {1}".format(params.pxf_user, params.tcserver_instance_dir)
+  Execute(command, timeout=600)
+
   if System.get_instance().os_family == "suse":
     command = "usermod -A {0} pxf".format(params.hdfs_superuser_group)
   else:
