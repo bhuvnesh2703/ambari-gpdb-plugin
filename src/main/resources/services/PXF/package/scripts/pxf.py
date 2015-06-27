@@ -19,6 +19,12 @@ def init(env):
   command = "service pxf-service init && usermod -s /bin/bash %s" % params.pxf_user
   Execute(command, timeout=600)
 
+  # Ensure that instance directory is owned by pxf:pxf. 
+  # Directory() functions takes care of the permission only while executing makedirs, however if the directories are already available, it doesnot changes the permission, thus using chown here.
+  # This behavior appears to be fixed in Ambari 2.0.
+  command = "chown {0}:{0} -R {1}".format(params.pxf_user, params.pxf_instance_dir)
+  Execute(command, timeout=600)
+
   if System.get_instance().os_family == "suse":
     command = "usermod -A {0} pxf".format(params.hdfs_superuser_group)
   else:
