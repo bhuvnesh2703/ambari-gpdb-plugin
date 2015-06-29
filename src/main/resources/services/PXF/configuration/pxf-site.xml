@@ -9,11 +9,5 @@
 		<description>path to keytab file owned by pxf service with permissions 0400
 		</description>
 	</property>
-	<property>
-		<name>pxf.service.kerberos.principal</name>
-		<value>{{_pxf_principal_name}}</value>
-		<description>Kerberos principal pxf service should use. _HOST is replaced automatically with hostnames FQDN
-		</description>
-	</property>
 
 </configuration>

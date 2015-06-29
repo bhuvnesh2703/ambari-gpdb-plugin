@@ -8,6 +8,9 @@ def init(env):
   File("{0}/pxf-private.classpath".format(params.pxf_conf_dir),
        content=Template("pxf-private-classpath.j2"))
 
+  if params.security_enabled:
+    params.config['configurations']['pxf-site']['pxf.service.kerberos.principal'] = params._pxf_principal_name
+
   XmlConfig("pxf-site.xml",
     conf_dir=params.pxf_conf_dir,
     configurations=params.config['configurations']['pxf-site'],
