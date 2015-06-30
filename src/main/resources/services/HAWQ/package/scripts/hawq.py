@@ -1,7 +1,7 @@
 from resource_management import *
 from Hardware import Hardware
 from verifications import Verifications
-from common import subprocess_command_with_results, get_processes_on_port
+from common import subprocess_command_with_results
 import specs
 import os
 import subprocess
@@ -336,17 +336,15 @@ def master_start(env=None):
     command = source + cmd
     Execute(command, user=params.hawq_user, timeout=600)
 
-def is_hawq_running():
-  import params
-  processes = get_processes_on_port(params.hawq_master_port)
-  # Split the columns in the output, return True if the process running on master port contains postgres else False
-  return any('postgres' in process for process in processes.split())
-
 def master_stop(env=None):
   import params
-  if is_hawq_running():
-    cmd = "source /usr/local/hawq/greenplum_path.sh; gpstop -af -d {0}/gpseg-1".format(params.hawq_master_dir)
-    Execute(cmd, user=params.hawq_user, timeout=600)
+  command = "source /usr/local/hawq/greenplum_path.sh; gpstop -af -d {0}/gpseg-1".format(params.hawq_master_dir)
+  # If postgres process is running on hawq master port, gpstop should be executed otherwise it should be skipped. Note: {0}\s captures processes running on port 5432 and not on 5432[0-9]
+  hawq_process_chk_cmd = "if [ `(netstat -tupln | egrep ':{0}\s' | egrep postgres | awk 'END {{print FNR}}')` -gt 0 ] ; then (exit 1) ; else (exit 0) ; fi".format(params.hawq_master_port)
+  Execute(command,
+          user=params.hawq_user, 
+          timeout=600, 
+          not_if="if [ `(netstat -tupln | egrep ':{0}\s' | egrep postgres | awk 'END {{print FNR}}')` -gt 0 ] ; then (exit 1) ; else (exit 0) ; fi".format(params.hawq_master_port))
 
 def metrics_start(env=None):
   import params
