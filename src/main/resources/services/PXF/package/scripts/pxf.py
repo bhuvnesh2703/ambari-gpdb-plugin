@@ -8,8 +8,13 @@ def init(env):
   File("{0}/pxf-private.classpath".format(params.pxf_conf_dir),
        content=Template("pxf-private-classpath.j2"))
 
-  File("{0}/pxf-site.xml".format(params.pxf_conf_dir),
-     content=Template("pxf-site.j2"))
+  if params.security_enabled:
+    params.config['configurations']['pxf-site']['pxf.service.kerberos.principal'] = params._pxf_principal_name
+
+  XmlConfig("pxf-site.xml",
+    conf_dir=params.pxf_conf_dir,
+    configurations=params.config['configurations']['pxf-site'],
+    configuration_attributes=params.config['configuration_attributes']['pxf-site'])
 
   if params.security_enabled:
     command  = "chown %s:%s %s &&" % (params.pxf_user, params.user_group, params.pxf_keytab_file)
