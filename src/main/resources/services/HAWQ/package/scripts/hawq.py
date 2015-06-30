@@ -344,9 +344,9 @@ def is_hawq_running():
     if 'postgres' in process:
       Logger.info("HAWQ database postgres process is running on port %d, executing gpstop operation." % params.hawq_master_port)
       return True
-    else:
-      Logger.info("HAWQ database postgres process in not running on port %d, skipping gpstop operation." % params.hawq_master_port)
-      return False
+  else:
+    Logger.info("HAWQ database postgres process in not running on port %d, skipping gpstop operation." % params.hawq_master_port)
+    return False
 
 def master_stop(env=None):
   import params
