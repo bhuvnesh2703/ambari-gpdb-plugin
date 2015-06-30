@@ -17,7 +17,7 @@ def subprocess_command_with_results(cmd, remote_hostname=None):
 def get_processes_on_port(port):
   # Identify processes running on input port
   cmd = "netstat -tupln | egrep ':{0}'".format(port)
-  (retcode, out, err) = subprocess_command_with_results(cmd, remote_hostname=None)
+  (retcode, out, err) = subprocess_command_with_results(cmd)
   if err:
     raise Exception("Execution of command `%s` failed. Error returned is \n%s" % (cmd, err))
   # Strip multiple spaces in the output to single space, and remove the newline character from output
