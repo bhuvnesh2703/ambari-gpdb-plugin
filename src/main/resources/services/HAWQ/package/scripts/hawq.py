@@ -1,7 +1,7 @@
 from resource_management import *
 from Hardware import Hardware
 from verifications import Verifications
-from common import subprocess_command_with_results
+from common import subprocess_command_with_results, get_processes_on_port
 import specs
 import os
 import subprocess
@@ -336,12 +336,25 @@ def master_start(env=None):
     command = source + cmd
     Execute(command, user=params.hawq_user, timeout=600)
 
+def is_hawq_running():
+  import params
+  processes = get_processes_on_port(params.hawq_master_port)
+  # Split the columns in the output and identify if the process running on master port contains postgres
+  for process in processes.split():
+    if 'postgres' in process:
+      Logger.info("HAWQ database postgres process is running on port %d, executing gpstop operation." % params.hawq_master_port)
+      return True
+    else:
+      Logger.info("HAWQ database postgres process in not running on port %d, skipping gpstop operation." % params.hawq_master_port)
+      return False
+
 def master_stop(env=None):
   import params
-  source = "source /usr/local/hawq/greenplum_path.sh;"
-  cmd = "gpstop -af -d {0}/gpseg-1".format(params.hawq_master_dir)
-  command = source + cmd
-  Execute(command, user=params.hawq_user, timeout=600)
+  if is_hawq_running():
+    source = "source /usr/local/hawq/greenplum_path.sh;"
+    cmd = "gpstop -af -d {0}/gpseg-1".format(params.hawq_master_dir)
+    command = source + cmd
+    Execute(command, user=params.hawq_user, timeout=600)
 
 def metrics_start(env=None):
   import params
