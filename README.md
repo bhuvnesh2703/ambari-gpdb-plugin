@@ -20,6 +20,7 @@ If your Ambari cluster is a single node cluster, there are some extra steps you'
     sudo yum install -y hawq-plugin
     ```
 1. **Single node cluster only** Before starting ambari-server, remove HAWQSTANDBY component from metainfo.xml. See Appendix 1
+1. **Single node cluster only** Modify output.replace-datanode-on-failure parameter in /var/lib/ambari-server/resources/stacks/PHD/3.0/services/HAWQ/package/templates/hdfs-client.j2 to false
 1. Start ambari-server
 1. **Single node cluster only** During Cluster Install Wizard, make sure hawq.master.port in hawq-site is changed through Ambari Wizard to 10432 (or anything other than 5432) to avoid a port conflict.
 
