@@ -231,7 +231,7 @@ def master_dbinit(env=None):
   master_dbid_path = params.hawq_master_dir + params.hawq_master_dbid_path_suffix
   if not os.path.exists(master_dbid_path):
     if params.security_enabled:
-      kinit = "/usr/bin/kinit -kt {0} {1};".format(params._hdfs_headless_keytab, params._hdfs_headless_keytab_user)
+      kinit = "/usr/bin/kinit -kt {0} {1};".format(params._hdfs_headless_keytab, params._hdfs_headless_princpal_name)
       cmd_setup_dir = "hdfs dfs -mkdir -p /user/gpadmin && hdfs dfs -chown -R gpadmin:gpadmin /user/gpadmin && hdfs dfs -chmod 777 /user/gpadmin;"
       cmd_setup_dir += "hdfs dfs -mkdir -p {0} && hdfs dfs -chown -R postgres:gpadmin {0} && hdfs dfs -chmod 755 {0};".format(params.hawq_hdfs_data_dir)
       command = kinit+cmd_setup_dir
@@ -315,7 +315,7 @@ def set_security():
   if params.security_enabled:
     if not (enable_secure_filesystem and krb_server_keyfile):
       set_postgresql_conf('on')
-    kinit = "/usr/bin/kinit -kt {0} {1};".format(params._hdfs_headless_keytab, params._hdfs_headless_keytab_user)
+    kinit = "/usr/bin/kinit -kt {0} {1};".format(params._hdfs_headless_keytab, params._hdfs_headless_princpal_name)
     owner = "postgres:gpadmin"
   else:
     if enable_secure_filesystem:

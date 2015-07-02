@@ -46,7 +46,9 @@ if config["commandType"] == 'EXECUTION_COMMAND':
   if security_enabled:
     _nn_principal_name = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
     _hdfs_headless_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
-    _hdfs_headless_keytab_user = 'hdfs'
+    _hdfs_headless_keytab_user = config['configurations']['hadoop-env']['hdfs_principal_name']
+    _realm_name = config['configurations']['cluster-env']['kerberos_domain']
+    _hdfs_headless_princpal_name = _hdfs_headless_keytab_user + '@' + _realm_name
 
   if "hawqstandby_hosts" in config["clusterHostInfo"]: # existsance of the key should be explicitly checked. Otherwise, (like 'if config["clusterHostInfo"]["hawqstandby_hosts"]:') throws an error from config_dictionary.py's UnknownConfiguration class
     if len(config["clusterHostInfo"]["hawqstandby_hosts"]) > 0:
