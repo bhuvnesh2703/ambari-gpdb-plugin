@@ -36,10 +36,10 @@
             <require>ambari-server &gt;= 1.7</require>
             <require>python &gt;= 2.6</require>
           </requires>
-          <postinstallScriptlet>
+          <posttransScriptlet>
             <scriptFile>src/main/package/rpm/postinstall.sh</scriptFile>
             <fileEncoding>utf-8</fileEncoding>
-          </postinstallScriptlet>
+          </posttransScriptlet>
           <preremoveScriptlet>
             <scriptFile>src/main/package/rpm/preremove.sh</scriptFile>
             <fileEncoding>utf-8</fileEncoding>
