@@ -49,4 +49,5 @@ if config["commandType"] == 'EXECUTION_COMMAND':
     pxf_keytab_file = config["configurations"]["pxf-site"]["pxf.service.kerberos.keytab"]
   if security_enabled:
     _nn_principal_name = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
-    _pxf_principal_name = _nn_principal_name.replace('nn', 'pxf')
+    _realm_name = config['configurations']['cluster-env']['kerberos_domain']
+    _pxf_principal_name = pxf_user + '/_HOST@' + _realm_name
