@@ -98,11 +98,11 @@ def update_sysctl_file():
     content=Template("hawq.sysctl.conf.j2"),
     owner=params.hawq_user,
     group=params.hawq_group,
-    not_if=diff_cmd)
+    only_if=diff_cmd)
 
   #Reload kernel sysctl parameters from hawq file. On system reboot this file will be automatically loaded.
   #Only if some parameters has been changed
-  Execute("sysctl -e -p {0}/hawq.conf".format(params.sysctl_conf_dir), timeout=600, not_if=diff_cmd)
+  Execute("sysctl -e -p {0}/hawq.conf".format(params.sysctl_conf_dir), timeout=600, only_if=diff_cmd)
 
   #Wipe out temp file
   File(sysctl_tmp_file, action = 'delete')
