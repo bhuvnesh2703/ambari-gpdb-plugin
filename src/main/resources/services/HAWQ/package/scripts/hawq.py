@@ -81,31 +81,14 @@ def update_sysctl_file():
     owner='root',
     group='root')
 
-  sysctl_tmp_file = "{0}/hawq.conf".format(params.hawq_tmp_dir)
-  sysctl_file = "{0}/hawq.conf".format(params.sysctl_conf_dir)
-
-  #Command needed to compare current file and whatever came from UI
-  diff_cmd = "diff {0} {1} > /dev/null 2>&1".format(sysctl_tmp_file, sysctl_file)
-
-  #Generate temporary file with kernel parameters needed by hawq
-  File(sysctl_tmp_file,
+  #Generate file with kernel parameters needed by hawq
+  File("{0}/hawq.conf".format(params.sysctl_conf_dir),
     content=Template("hawq.sysctl.conf.j2"),
     owner=params.hawq_user,
     group=params.hawq_group)
 
-  #Generate file with kernel parameters needed by hawq, only if something has been changed by user
-  File(sysctl_file,
-    content=Template("hawq.sysctl.conf.j2"),
-    owner=params.hawq_user,
-    group=params.hawq_group,
-    only_if=diff_cmd)
-
   #Reload kernel sysctl parameters from hawq file. On system reboot this file will be automatically loaded.
-  #Only if some parameters has been changed
-  Execute("sysctl -e -p {0}/hawq.conf".format(params.sysctl_conf_dir), timeout=600, only_if=diff_cmd)
-
-  #Wipe out temp file
-  File(sysctl_tmp_file, action = 'delete')
+  Execute("sysctl -e -p {0}/hawq.conf".format(params.sysctl_conf_dir), timeout=600)
 
 def update_sysctl_file_suse():
     import params
@@ -138,21 +121,21 @@ def update_sysctl_file_suse():
       hawq_sysctl_lines = [item for item in hawq_sysctl_lines if '=' in item]
       #Convert key=value list to dictionary
       hawq_sysctl_dict = dict(item.split("=") for item in hawq_sysctl_lines)
-      if hawq_sysctl_dict != sysctl_file_dict:
-        #Merge common system file with hawq specific file
-        sysctl_file_dict.update(hawq_sysctl_dict)
 
-        #Write merged properties to file
-        sysctl_file.seek(0)
-        for property_key, property_value in sysctl_file_dict.items():
-          if property_value is not None:
-            sysctl_file.write("{0}={1}\n".format(property_key, property_value))
-          else:
-            sysctl_file.write(property_key + "\n")
-        sysctl_file.truncate()
+      #Merge common system file with hawq specific file
+      sysctl_file_dict.update(hawq_sysctl_dict)
 
-        #Reload kernel sysctl parameters from /etc/sysctl.conf
-        Execute("sysctl -e -p", timeout=600)
+      #Write merged properties to file
+      sysctl_file.seek(0)
+      for property_key, property_value in sysctl_file_dict.items():
+        if property_value is not None:
+          sysctl_file.write("{0}={1}\n".format(property_key, property_value))
+        else:
+          sysctl_file.write(property_key + "\n")
+      sysctl_file.truncate()
+
+      #Reload kernel sysctl parameters from /etc/sysctl.conf
+      Execute("sysctl -e -p", timeout=600)
     except Exception as e:
       Logger.error("Error occurred while updating sysctl.conf file " + str(e))
       Logger.info("Restoring file {0} from {1}".format(params.sysctl_conf_suse, backup_file_name))
@@ -389,4 +372,3 @@ def try_activate_standby(env):
   cmd = "export MASTER_DATA_DIRECTORY={0}/gpseg-1;gpactivatestandby -a -f -d {0}/gpseg-1".format(params.hawq_master_dir)
   command = source + cmd
   Execute(command, user=params.hawq_user, timeout=600)
-
