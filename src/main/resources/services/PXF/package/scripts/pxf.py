@@ -9,11 +9,15 @@ def init(env):
        content=Template("pxf-private-classpath.j2"))
 
   if params.security_enabled:
-    params.config['configurations']['pxf-site']['pxf.service.kerberos.principal'] = params._pxf_principal_name
+    pxf_site_dict = dict(params.config['configurations']['pxf-site'])
+    pxf_site_dict['pxf.service.kerberos.principal'] = params._pxf_principal_name
+    pxf_site = ConfigDictionary(pxf_site_dict)
+  else:
+    pxf_site = params.config['configurations']['pxf-site']
 
   XmlConfig("pxf-site.xml",
     conf_dir=params.pxf_conf_dir,
-    configurations=params.config['configurations']['pxf-site'],
+    configurations=pxf_site,
     configuration_attributes=params.config['configuration_attributes']['pxf-site'])
 
   if params.security_enabled:
