@@ -46,7 +46,7 @@ if config["commandType"] == 'EXECUTION_COMMAND':
   java_home = config["hostLevelParams"]["java_home"]
   pxf_site_config = config["configurations"].get("pxf-site")
   if pxf_site_config:
-    pxf_keytab_file = config["configurations"]["pxf-site"]["pxf.keytab.file"]
+    pxf_keytab_file = config["configurations"]["pxf-site"]["pxf.service.kerberos.keytab"]
   if security_enabled:
     _nn_principal_name = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
     _pxf_principal_name = _nn_principal_name.replace('nn', 'pxf')
