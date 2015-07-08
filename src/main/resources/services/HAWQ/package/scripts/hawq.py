@@ -135,6 +135,8 @@ def update_sysctl_file_suse():
       #Convert key=value list to dictionary
       sysctl_file_dict = dict(item.split("=") for item in sysctl_file_lines)
 
+      sysctl_file_dict_original = sysctl_file_dict.copy()
+
       #Merge sysctl.conf with hawq.conf
       hawq_sysctl_file = open(params.hawq_sysctl_conf_tmp, "r")
       hawq_sysctl_lines = hawq_sysctl_file.readlines()
@@ -142,9 +144,10 @@ def update_sysctl_file_suse():
       hawq_sysctl_lines = [item for item in hawq_sysctl_lines if '=' in item]
       #Convert key=value list to dictionary
       hawq_sysctl_dict = dict(item.split("=") for item in hawq_sysctl_lines)
-      if hawq_sysctl_dict != sysctl_file_dict:
-        #Merge common system file with hawq specific file
-        sysctl_file_dict.update(hawq_sysctl_dict)
+      #Merge common system file with hawq specific file
+      sysctl_file_dict.update(hawq_sysctl_dict)
+
+      if sysctl_file_dict_original != sysctl_file_dict:
 
         #Write merged properties to file
         sysctl_file.seek(0)
@@ -157,6 +160,7 @@ def update_sysctl_file_suse():
 
         #Reload kernel sysctl parameters from /etc/sysctl.conf
         Execute("sysctl -e -p", timeout=600)
+
     except Exception as e:
       Logger.error("Error occurred while updating sysctl.conf file " + str(e))
       Logger.info("Restoring file {0} from {1}".format(params.sysctl_conf_suse, backup_file_name))
