@@ -7,6 +7,7 @@ import os
 import subprocess
 import pwd
 import time
+import filecmp
 
 def verify_segments_state(env):
   import params
@@ -81,72 +82,105 @@ def update_sysctl_file():
     owner='root',
     group='root')
 
-  #Generate file with kernel parameters needed by hawq
-  File("{0}/hawq.conf".format(params.sysctl_conf_dir),
+  sysctl_tmp_file = "{0}/hawq.conf".format(params.hawq_tmp_dir)
+  sysctl_file = "{0}/hawq.conf".format(params.sysctl_conf_dir)
+
+  #Generate temporary file with kernel parameters needed by hawq
+  File(sysctl_tmp_file,
     content=Template("hawq.sysctl.conf.j2"),
     owner=params.hawq_user,
     group=params.hawq_group)
 
-  #Reload kernel sysctl parameters from hawq file. On system reboot this file will be automatically loaded.
-  Execute("sysctl -e -p {0}/hawq.conf".format(params.sysctl_conf_dir), timeout=600)
+  try:
+    is_changed = not filecmp.cmp(sysctl_file, sysctl_tmp_file)
+  except Exception:
+    is_changed = True
+
+  if is_changed:
+
+    #Generate file with kernel parameters needed by hawq, only if something has been changed by user
+    File(sysctl_file,
+      content=Template("hawq.sysctl.conf.j2"),
+      owner=params.hawq_user,
+      group=params.hawq_group)
+
+    #Reload kernel sysctl parameters from hawq file. On system reboot this file will be automatically loaded.
+    #Only if some parameters has been changed
+    Execute("sysctl -e -p {0}/hawq.conf".format(params.sysctl_conf_dir), timeout=600)
+
+  #Wipe out temp file
+  File(sysctl_tmp_file, action = 'delete')
 
 def update_sysctl_file_suse():
     import params
+    #Backup file
+    backup_file_name = params.hawq_sysctl_conf_backup.format(str(int(time.time())))
     try:
-      #Backup file
-      backup_file_name = params.hawq_sysctl_conf_backup.format(str(int(time.time())))
-      backup_command = "cp {0} {1}".format(params.sysctl_conf_suse, backup_file_name)
-      Execute(backup_command, timeout=600)
-      Logger.info("{0} has been backed up to {1}".format(params.sysctl_conf_suse, backup_file_name))
-
       #Generate file with kernel parameters needed by hawq to temp file
       File(params.hawq_sysctl_conf_tmp,
          content=Template("hawq.sysctl.conf.j2"),
          owner=params.hawq_user,
          group=params.hawq_group)
 
-      sysctl_file = open(params.sysctl_conf_suse, "rw+")
-      sysctl_file_lines = sysctl_file.readlines()
-
-      sysctl_file_dict = dict()
-      #Filter lines, leave only key=values items
-      sysctl_file_lines = [item for item in sysctl_file_lines if '=' in item]
-      #Convert key=value list to dictionary
-      sysctl_file_dict = dict(item.split("=") for item in sysctl_file_lines)
-
-      #Merge sysctl.conf with hawq.conf
-      hawq_sysctl_file = open(params.hawq_sysctl_conf_tmp, "r")
-      hawq_sysctl_lines = hawq_sysctl_file.readlines()
-      #Filter lines, leave only key=values items
-      hawq_sysctl_lines = [item for item in hawq_sysctl_lines if '=' in item]
-      #Convert key=value list to dictionary
-      hawq_sysctl_dict = dict(item.split("=") for item in hawq_sysctl_lines)
+      sysctl_file_dict = read_file_to_dict(params.sysctl_conf_suse)
+      sysctl_file_dict_original = sysctl_file_dict.copy()
+      hawq_sysctl_dict = read_file_to_dict(params.hawq_sysctl_conf_tmp)
 
       #Merge common system file with hawq specific file
       sysctl_file_dict.update(hawq_sysctl_dict)
 
-      #Write merged properties to file
-      sysctl_file.seek(0)
-      for property_key, property_value in sysctl_file_dict.items():
-        if property_value is not None:
-          sysctl_file.write("{0}={1}\n".format(property_key, property_value))
-        else:
-          sysctl_file.write(property_key + "\n")
-      sysctl_file.truncate()
+      if sysctl_file_dict_original != sysctl_file_dict:
 
-      #Reload kernel sysctl parameters from /etc/sysctl.conf
-      Execute("sysctl -e -p", timeout=600)
+        #Backup file
+        backup_file(params.sysctl_conf_suse, backup_file_name)
+
+        #Write merged properties to file
+        write_dict_to_file(sysctl_file_dict, params.sysctl_conf_suse)
+
+        #Reload kernel sysctl parameters from /etc/sysctl.conf
+        Execute("sysctl -e -p", timeout=600)
+
     except Exception as e:
       Logger.error("Error occurred while updating sysctl.conf file " + str(e))
-      Logger.info("Restoring file {0} from {1}".format(params.sysctl_conf_suse, backup_file_name))
-      restore_file_command = "mv {0} {1}".format(backup_file_name, params.sysctl_conf_suse)
-      Execute(restore_file_command, timeout=600)
+      restore_file(backup_file_name, params.sysctl_conf_suse)
       raise Fail("Error occurred while updating sysctl.conf file " + str(e))
     finally:
-      sysctl_file.close()
-      hawq_sysctl_file.close()
       #Wipe out temp file
       File(params.hawq_sysctl_conf_tmp, action = 'delete')
+
+def read_file_to_dict(file_name):
+  result_dict = dict()
+  try:
+    f = open(file_name, "r")
+    lines = f.readlines()
+    #Filter lines, leave only key=values items
+    lines = [item for item in lines if '=' in item]
+    #Convert key=value list to dictionary
+    result_dict = dict(item.split("=") for item in lines)
+  finally:
+    f.close()
+    return result_dict
+
+def write_dict_to_file(source_dict, dest_file):
+  try:
+    f = open(dest_file, "w")
+    for property_key, property_value in source_dict.items():
+      if property_value is not None:
+        f.write("{0}={1}\n".format(property_key, property_value))
+      else:
+        f.write(property_key + "\n")
+  finally:
+    f.close()
+
+def backup_file(source_file, backup_file):
+  backup_command = "cp {0} {1}".format(source_file, backup_file)
+  Execute(backup_command, timeout=600)
+  Logger.info("{0} has been backed up to {1}".format(source_file, backup_file))
+
+def restore_file(backup_file_name, destination_file_name):
+  Logger.info("Restoring file {0} from {1}".format(destination_file_name, backup_file_name))
+  restore_file_command = "mv {0} {1}".format(backup_file_name, destination_file_name)
+  Execute(restore_file_command, timeout=600)
 
 def common_setup(env):
   import params
