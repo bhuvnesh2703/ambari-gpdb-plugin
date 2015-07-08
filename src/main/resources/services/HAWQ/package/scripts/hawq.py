@@ -120,9 +120,6 @@ def update_sysctl_file_suse():
       #Backup file
       backup_file_name = params.hawq_sysctl_conf_backup.format(str(int(time.time())))
       backup_command = "cp {0} {1}".format(params.sysctl_conf_suse, backup_file_name)
-      Execute(backup_command, timeout=600)
-      Logger.info("{0} has been backed up to {1}".format(params.sysctl_conf_suse, backup_file_name))
-
       #Generate file with kernel parameters needed by hawq to temp file
       File(params.hawq_sysctl_conf_tmp,
          content=Template("hawq.sysctl.conf.j2"),
@@ -151,6 +148,10 @@ def update_sysctl_file_suse():
       sysctl_file_dict.update(hawq_sysctl_dict)
 
       if sysctl_file_dict_original != sysctl_file_dict:
+
+        #Backup file
+        Execute(backup_command, timeout=600)
+        Logger.info("{0} has been backed up to {1}".format(params.sysctl_conf_suse, backup_file_name))
 
         #Write merged properties to file
         sysctl_file.seek(0)
