@@ -85,9 +85,6 @@ def update_sysctl_file():
   sysctl_tmp_file = "{0}/hawq.conf".format(params.hawq_tmp_dir)
   sysctl_file = "{0}/hawq.conf".format(params.sysctl_conf_dir)
 
-  #Command needed to compare current file and whatever came from UI
-  diff_cmd = "diff {0} {1} > /dev/null 2>&1".format(sysctl_tmp_file, sysctl_file)
-
   #Generate temporary file with kernel parameters needed by hawq
   File(sysctl_tmp_file,
     content=Template("hawq.sysctl.conf.j2"),
@@ -95,7 +92,7 @@ def update_sysctl_file():
     group=params.hawq_group)
 
   try:
-    is_changed = filecmp.cmp(sysctl_file, sysctl_tmp_file)
+    is_changed = not filecmp.cmp(sysctl_file, sysctl_tmp_file)
   except Exception:
     is_changed = True
 
