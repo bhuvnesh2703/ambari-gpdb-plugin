@@ -398,4 +398,3 @@ def try_activate_standby(env):
   cmd = "export MASTER_DATA_DIRECTORY={0}/gpseg-1;gpactivatestandby -a -f -d {0}/gpseg-1".format(params.hawq_master_dir)
   command = source + cmd
   Execute(command, user=params.hawq_user, timeout=600)
-
