@@ -94,7 +94,10 @@ def update_sysctl_file():
     owner=params.hawq_user,
     group=params.hawq_group)
 
-  is_changed = filecmp.cmp(sysctl_file, sysctl_tmp_file)
+  try:
+    is_changed = filecmp.cmp(sysctl_file, sysctl_tmp_file)
+  except Exception:
+    is_changed = True
 
   if is_changed:
 
