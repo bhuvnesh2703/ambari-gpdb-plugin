@@ -7,6 +7,7 @@ import os
 import subprocess
 import pwd
 import time
+import filecmp
 
 def verify_segments_state(env):
   import params
@@ -93,16 +94,19 @@ def update_sysctl_file():
     owner=params.hawq_user,
     group=params.hawq_group)
 
-  #Generate file with kernel parameters needed by hawq, only if something has been changed by user
-  File(sysctl_file,
-    content=Template("hawq.sysctl.conf.j2"),
-    owner=params.hawq_user,
-    group=params.hawq_group,
-    only_if=diff_cmd)
+  is_changed = filecmp.cmp(sysctl_file, sysctl_tmp_file)
 
-  #Reload kernel sysctl parameters from hawq file. On system reboot this file will be automatically loaded.
-  #Only if some parameters has been changed
-  Execute("sysctl -e -p {0}/hawq.conf".format(params.sysctl_conf_dir), timeout=600, only_if=diff_cmd)
+  if is_changed:
+
+    #Generate file with kernel parameters needed by hawq, only if something has been changed by user
+    File(sysctl_file,
+      content=Template("hawq.sysctl.conf.j2"),
+      owner=params.hawq_user,
+      group=params.hawq_group)
+
+    #Reload kernel sysctl parameters from hawq file. On system reboot this file will be automatically loaded.
+    #Only if some parameters has been changed
+    Execute("sysctl -e -p {0}/hawq.conf".format(params.sysctl_conf_dir), timeout=600)
 
   #Wipe out temp file
   File(sysctl_tmp_file, action = 'delete')
