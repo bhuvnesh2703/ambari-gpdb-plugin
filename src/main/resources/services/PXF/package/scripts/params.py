@@ -9,6 +9,7 @@ user_group = "hadoop"
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 pxf_instance_dir = "/var/gphd/pxf"
 tcserver_pid_file = "/var/gphd/pxf/pxf-service/logs/tcserver.pid"
+pxf_service_name = "pxf-service"
 
 pxf_keytab_file = "/etc/security/keytabs/pxf.service.keytab"
 _pxf_principal_name = ''
