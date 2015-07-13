@@ -1,6 +1,8 @@
 from resource_management import *
 
 def init(env):
+  #TODO add "init" action to Service resource https://github.com/Pivotal-Hadoop/ambari/blob/trunk/ambari-common/src/main/python/resource_management/core/resources/service.py#L38
+  #TODO change Execute to Service
   command = "service pxf-service init"
   Execute(command, timeout=600)
 
