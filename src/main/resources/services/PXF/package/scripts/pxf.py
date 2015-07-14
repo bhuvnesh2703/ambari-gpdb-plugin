@@ -6,6 +6,7 @@ def init(env):
   #TODO change Execute to Service
   command = "service pxf-service init"
   pxf_instance_dir_exists_cmd = "test -e {0}".format(params.pxf_instance_dir)
+  #Run init only if pxf instance directory doesn't exists
   Execute(command, timeout=600, not_if=pxf_instance_dir_exists_cmd)
 
 def setup_user_group(env):

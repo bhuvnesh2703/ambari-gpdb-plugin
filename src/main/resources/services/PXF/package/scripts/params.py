@@ -4,8 +4,8 @@ from resource_management import *
 config = Script.get_config()
 
 hdfs_superuser_group = config["configurations"]["hdfs-site"]["dfs.permissions.superusergroup"]
-fabric_group = "vfabric"
 pxf_user = "pxf"
+fabric_group = "vfabric"
 user_group = config['configurations']['cluster-env']['user_group']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 pxf_instance_dir = "/var/gphd/pxf"
