@@ -1,16 +1,18 @@
 from resource_management import *
 
 def init(env):
+  import params
   #TODO add "init" action to Service resource https://github.com/Pivotal-Hadoop/ambari/blob/trunk/ambari-common/src/main/python/resource_management/core/resources/service.py#L38
   #TODO change Execute to Service
   command = "service pxf-service init"
-  Execute(command, timeout=600)
+  pxf_instance_dir_exists_cmd = "test -e {0}".format(params.pxf_instance_dir)
+  Execute(command, timeout=600, not_if=pxf_instance_dir_exists_cmd)
 
 def setup_user_group(env):
   import params
-  #Add pxf user to hdfs superuser group
-  #Assign default shell to pxf user
-  User(params.pxf_user, groups = [params.hdfs_superuser_group], shell='/bin/bash')
+  #Ensure pxf user exists and belongs to all required groups
+  #Ensure default shell of pxf user is /bin/bash
+  User(params.pxf_user, groups = [params.hdfs_superuser_group, params.fabric_group, params.user_group], shell='/bin/bash')
 
 def grant_permissions(env):
   import params
@@ -23,7 +25,6 @@ def grant_permissions(env):
   # This behavior appears to be fixed in Ambari 2.0.
   command = "chown {0}:{0} -R {1}".format(params.pxf_user, params.pxf_instance_dir)
   Execute(command, timeout=600)
-
 
 def generate_config_files(env):
   import params
@@ -47,11 +48,13 @@ def generate_config_files(env):
 
 def start(env):
   import params
-  Service(params.pxf_service_name, action = "restart")
+  command = "service pxf-service restart"
+  Execute(command, timeout=600)
 
 def stop(env):
   import params
-  Service(params.pxf_service_name, action = "stop")
+  command = "service pxf-service stop"
+  Execute(command, timeout=600)
 
 def status(env):
   import params
