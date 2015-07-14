@@ -48,11 +48,13 @@ def generate_config_files(env):
 
 def start(env):
   import params
+  #TODO: Change Execute to Service after "service pxf-service status" will be supported
   command = "service pxf-service restart"
   Execute(command, timeout=600)
 
 def stop(env):
   import params
+  #TODO: Change Execute to Service after "service pxf-service status" will be supported
   command = "service pxf-service stop"
   Execute(command, timeout=600)
 
