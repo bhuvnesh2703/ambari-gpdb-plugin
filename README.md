@@ -24,6 +24,20 @@ If your Ambari cluster is a single node cluster, there are some extra steps you'
 1. Start ambari-server
 1. **Single node cluster only** During Cluster Install Wizard, make sure hawq.master.port in hawq-site is changed through Ambari Wizard to 10432 (or anything other than 5432) to avoid a port conflict.
 
+
+How to enable and disable dfs.allow.truncate enforcement
+---------------------------------------
+HAWQ works best with dfs.allow.truncate property True in hdfs-site.xml. hawq-plugin could let users to start HAWQ without it.
+* if dfs.allow.truncate=True --> starting hawq succeeds
+* if dfs.allow.truncate=False and enforce_hdfs_truncate=False -> starting hawq fails
+* if dfs.allow.truncate=False and enforce_hdfs_truncate=True -> starting hawq succeeds with a warning.
+
+`. stop ambari-sever
+`. Modify enforce_hdfs_truncate in /var/lib/ambari-server/resources/stacks/HDP/2.2/services/HAWQ/package/scripts/custom_params.py
+1. start ambari-server
+
+
+
 #### Appendix 1 What <component> to remove from metainfo.xml
 e.g /var/lib/ambari-server/resources/stacks/PHD/3.0/services/HAWQ/metainfo.xml
 
