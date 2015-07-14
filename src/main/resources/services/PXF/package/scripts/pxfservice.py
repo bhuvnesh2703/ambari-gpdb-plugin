@@ -6,8 +6,10 @@ import pxf
 class PxfService(Script):
   def install(self, env):
     self.install_packages(env)
+    pxf.setup_user_group(env)
+    pxf.generate_config_files(env)
     pxf.init(env)
-    self.configure(env)
+    pxf.grant_permissions(env)
 
   def configure(self, env):
     import params
