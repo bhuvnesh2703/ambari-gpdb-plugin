@@ -5,7 +5,6 @@ import pxf
 
 class PxfService(Script):
   def install(self, env):
-    import params
     self.install_packages(env)
     self.configure(env)
 
