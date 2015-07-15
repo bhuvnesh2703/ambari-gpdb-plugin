@@ -11,7 +11,10 @@ class PxfService(Script):
   def configure(self, env):
     import params
     env.set_params(params)
+    pxf.setup_user_group(env)
+    pxf.generate_config_files(env)
     pxf.init(env)
+    pxf.grant_permissions(env)
 
   def start(self, env):
     self.configure(env)
