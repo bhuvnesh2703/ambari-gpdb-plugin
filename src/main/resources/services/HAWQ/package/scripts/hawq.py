@@ -9,7 +9,7 @@ import pwd
 import time
 import filecmp
 
-DFS_ALLOW_TRUNCATE_ERROR_MESSAGE = "dfs.allow.truncate property in hdfs-site.xml file should be True"
+DFS_ALLOW_TRUNCATE_ERROR_MESSAGE = "dfs.allow.truncate property in hdfs-site.xml file should be set to True. Please review HAWQ installation guide for more information."
 
 def verify_segments_state(env):
   import params
@@ -391,7 +391,7 @@ def master_start(env=None):
     Execute(command, user=params.hawq_user, timeout=600)
 
   if not dfs_allow_truncate and not custom_params.enforce_hdfs_truncate:
-    print "**WARNING**" + DFS_ALLOW_TRUNCATE_ERROR_MESSAGE
+    print "**WARNING** " + DFS_ALLOW_TRUNCATE_ERROR_MESSAGE
 
 def master_stop(env=None):
   import params

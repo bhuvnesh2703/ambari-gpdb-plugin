@@ -32,8 +32,8 @@ HAWQ works best with dfs.allow.truncate property True in hdfs-site.xml. hawq-plu
 * if dfs.allow.truncate=False and enforce_hdfs_truncate=False -> starting hawq fails
 * if dfs.allow.truncate=False and enforce_hdfs_truncate=True -> starting hawq succeeds with a warning.
 
-`. stop ambari-sever
-`. Modify enforce_hdfs_truncate in /var/lib/ambari-server/resources/stacks/HDP/2.2/services/HAWQ/package/scripts/custom_params.py
+1. stop ambari-sever
+1. Modify enforce_hdfs_truncate in /var/lib/ambari-server/resources/stacks/HDP/2.2/services/HAWQ/package/scripts/custom_params.py
 1. start ambari-server
 
 
