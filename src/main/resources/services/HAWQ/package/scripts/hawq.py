@@ -9,6 +9,8 @@ import pwd
 import time
 import filecmp
 
+DFS_ALLOW_TRUNCATE_ERROR_MESSAGE = "dfs.allow.truncate property in hdfs-site.xml file should be set to True. Please review HAWQ installation guide for more information."
+
 def verify_segments_state(env):
   import params
   env.set_params(params)
@@ -203,7 +205,6 @@ def common_setup(env):
      content=Template("hdfs-client.j2"),
      owner=params.hawq_user,
      group=params.hawq_group)
-  
 
   Directory([params.hawq_data_dir.split(), params.hawq_tmp_dir],
             owner=params.hawq_user,
@@ -262,54 +263,50 @@ def master_configure(env):
 
 def master_dbinit(env=None):
   import params
-  master_dbid_path = params.hawq_master_dir + params.hawq_master_dbid_path_suffix
-  if not os.path.exists(master_dbid_path):
-    if params.security_enabled:
-      kinit = "/usr/bin/kinit -kt {0} {1};".format(params._hdfs_headless_keytab, params._hdfs_headless_princpal_name_with_realm)
-      cmd_setup_dir = "hdfs dfs -mkdir -p /user/gpadmin && hdfs dfs -chown -R gpadmin:gpadmin /user/gpadmin && hdfs dfs -chmod 777 /user/gpadmin;"
-      cmd_setup_dir += "hdfs dfs -mkdir -p {0} && hdfs dfs -chown -R postgres:gpadmin {0} && hdfs dfs -chmod 755 {0};".format(params.hawq_hdfs_data_dir)
-      command = kinit+cmd_setup_dir
-      Execute(command, user=params.hdfs_superuser, timeout=600)
-    else:
-      # create the hawq_hdfs_data_dir directory first
-      cmd_hawq_hdfs_data_dir =  "hdfs dfs -mkdir -p {0} && hdfs dfs -chown -R gpadmin:gpadmin {0} && hdfs dfs -chmod 755 {0};".format(params.hawq_hdfs_data_dir)
-      Execute(cmd_hawq_hdfs_data_dir, user=params.hdfs_superuser, timeout=600)
+  if params.security_enabled:
+    kinit = "/usr/bin/kinit -kt {0} {1};".format(params._hdfs_headless_keytab, params._hdfs_headless_princpal_name_with_realm)
+    cmd_setup_dir = "hdfs dfs -mkdir -p /user/gpadmin && hdfs dfs -chown -R gpadmin:gpadmin /user/gpadmin && hdfs dfs -chmod 777 /user/gpadmin;"
+    cmd_setup_dir += "hdfs dfs -mkdir -p {0} && hdfs dfs -chown -R postgres:gpadmin {0} && hdfs dfs -chmod 755 {0};".format(params.hawq_hdfs_data_dir)
+    command = kinit+cmd_setup_dir
+    Execute(command, user=params.hdfs_superuser, timeout=600)
+  else:
+    # create the hawq_hdfs_data_dir directory first
+    cmd_hawq_hdfs_data_dir =  "hdfs dfs -mkdir -p {0} && hdfs dfs -chown -R gpadmin:gpadmin {0} && hdfs dfs -chmod 755 {0};".format(params.hawq_hdfs_data_dir)
+    Execute(cmd_hawq_hdfs_data_dir, user=params.hdfs_superuser, timeout=600)
 
-    # ex-keys with segment hosts
-    source = "source /usr/local/hawq/greenplum_path.sh;"
-    try:
-        cmd = "gpssh-exkeys -f {0}/hostfile -p {1}".format(params.hawq_tmp_dir, params.hawq_password)
-        command = source + cmd
-        Execute(command, user=params.hawq_user, timeout=600)
-    except:
-        # ignore error for now since this can fail because hawq user is created with a different password
-        pass
-
-    # exchange keys with standby host
-    if params.hawq_standby:
-      try:
-        cmd = "gpssh-exkeys -h {0} -p {1}".format(params.hawq_standby, params.hawq_password)
-        command = source + cmd
-        Execute(command, user=params.hawq_user, timeout=600)
-      except:
-        # ignore error for now since this can fail because hawq user is created with a different password
-        pass
-
-    # gpinit
-    cmd = "gpinitsystem -a -c {0}/gpinitsystem_config -h {0}/hostfile".format(params.hawq_tmp_dir)
-    if params.hawq_standby:
-        cmd = cmd + " -s {0}".format(params.hawq_standby)
+  # ex-keys with segment hosts
+  source = "source /usr/local/hawq/greenplum_path.sh;"
+  try:
+    cmd = "gpssh-exkeys -f {0}/hostfile -p {1}".format(params.hawq_tmp_dir, params.hawq_password)
     command = source + cmd
+    Execute(command, user=params.hawq_user, timeout=600)
+  except:
+    # ignore error for now since this can fail because hawq user is created with a different password
+    pass
+
+  # exchange keys with standby host
+  if params.hawq_standby:
     try:
-      Execute(command, user=params.hawq_user, timeout=3600)
-    except Fail as ex:
-      if 'returned 1' in ex.message:
-        print ex.message
-        pass # gpinitsystem returns 1 when warnings are present, even if install is successful
-      else:
-        raise ex
-    return False
-  return True
+      cmd = "gpssh-exkeys -h {0} -p {1}".format(params.hawq_standby, params.hawq_password)
+      command = source + cmd
+      Execute(command, user=params.hawq_user, timeout=600)
+    except:
+      # ignore error for now since this can fail because hawq user is created with a different password
+      pass
+
+  # gpinit
+  cmd = "gpinitsystem -a -c {0}/gpinitsystem_config -h {0}/hostfile".format(params.hawq_tmp_dir)
+  if params.hawq_standby:
+      cmd = cmd + " -s {0}".format(params.hawq_standby)
+  command = source + cmd
+  try:
+    Execute(command, user=params.hawq_user, timeout=3600)
+  except Fail as ex:
+    if 'returned 1' in ex.message:
+      print ex.message
+      pass # gpinitsystem returns 1 when warnings are present, even if install is successful
+    else:
+      raise ex
 
 # The below function returns current state of parameters enable_secure_filesystem and krb_server_keyfile
 def get_postgres_secure_param_statuses():
@@ -361,13 +358,40 @@ def set_security():
   Execute(command, user=params.hdfs_superuser, timeout=600)
 
 def master_start(env=None):
-  import params
+  """
+  Check dfs.allow.truncate in hdfs-site.xml and enforce_hdfs_truncate in custom_params.py for hawq start
+  if dfs.allow.truncate=True --> starting hawq succeeds
+  if dfs.allow.truncate=False 
+     and enforce_hdfs_truncate=False -> starting hawq succeeds with a warning.
+     and enforce_hdfs_truncate=True -> starting hawq fails
+  """
+  import custom_params
+  config = Script.get_config()
+  
+  dfs_allow_truncate = None
+  if "dfs.allow.truncate" in config["configurations"]["hdfs-site"]:
+    dfs_allow_truncate=config["configurations"]["hdfs-site"]["dfs.allow.truncate"] in ["true", "True", True]
+  else:
+    dfs_allow_truncate=False
+
+  if not dfs_allow_truncate and custom_params.enforce_hdfs_truncate:
+    raise Exception(DFS_ALLOW_TRUNCATE_ERROR_MESSAGE)
+
   source = "source /usr/local/hawq/greenplum_path.sh;"
-  if master_dbinit(env): # check we have initialized. If not do it. dbinit will also start
+
+  import params
+  master_dbid_path = params.hawq_master_dir + params.hawq_master_dbid_path_suffix
+  # check if we have initialized. 
+  if not os.path.exists(master_dbid_path):
+    master_dbinit(env) # dbinit will also start hawq
+  else:
     set_security()
     cmd = "gpstart -a -d {0}/gpseg-1".format(params.hawq_master_dir)
     command = source + cmd
     Execute(command, user=params.hawq_user, timeout=600)
+
+  if not dfs_allow_truncate and not custom_params.enforce_hdfs_truncate:
+    print "**WARNING** " + DFS_ALLOW_TRUNCATE_ERROR_MESSAGE
 
 def master_stop(env=None):
   import params
