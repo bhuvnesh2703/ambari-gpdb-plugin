@@ -16,9 +16,10 @@ class HawqStandby(Script):
 
   def start(self, env):
     self.configure(env)
+    hawq.master_start(env)
 
   def stop(self, env):
-    pass
+    hawq.master_stop(env)
 
   def status(self, env):
     import status_params
