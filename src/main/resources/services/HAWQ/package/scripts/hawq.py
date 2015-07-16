@@ -475,7 +475,7 @@ def identify_active_master():
     return hostname == params.hawq_master
   if not _x_in_master_contents and _x_in_standby_contents:
     return hostname == params.hawq_master
-  if _x_in_master_contents and _x_in_standby_contents
+  if _x_in_master_contents and _x_in_standby_contents:
     """
     Conflict, both masters have -x flag. It appears that standby might have been activated to master.  Mostly, both the master servers will not have value of -x as 0 at the same time.  If anyone is havin
   g non-zero dbid for standby, and the other one as 0. Server with dbid 0 (standby activated to master) is highly likely the master server.  Because if non-zero dbid host is considered to be active then th
