@@ -55,10 +55,7 @@ if config["commandType"] == 'EXECUTION_COMMAND':
   if "hawqstandby_hosts" in config["clusterHostInfo"]: # existence of the key should be explicitly checked. Otherwise, (like 'if config["clusterHostInfo"]["hawqstandby_hosts"]:') throws an error from config_dictionary.py's UnknownConfiguration class
     if len(config["clusterHostInfo"]["hawqstandby_hosts"]) > 0:
       hawq_standby = config["clusterHostInfo"]["hawqstandby_hosts"][0]
-  if "hawqmaster_hosts" in config["clusterHostInfo"]:
-    if len(config["clusterHostInfo"]["hawqmaster_hosts"]) > 0:
-      hawq_master = config["clusterHostInfo"]["hawqmaster_hosts"][0]
-
+  hawq_master = config["clusterHostInfo"]["hawqmaster_hosts"][0]
 
   hawq_password = "gpadmin"
   hawq_cluster_name = "hawq"

@@ -378,9 +378,7 @@ def is_db_initialized():
   import params
   if params.hawq_standby is None:
     return os.path.exists(params.hawq_master_data_dir)
-  if not(params.master_obj.is_datadir_existing() or params.standby_obj.is_datadir_existing()):
-    return False
-  return True
+  return params.master_obj.is_datadir_existing() or params.standby_obj.is_datadir_existing()
 
 def get_hostname():
   import socket
