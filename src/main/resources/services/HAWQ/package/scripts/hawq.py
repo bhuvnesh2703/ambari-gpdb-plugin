@@ -412,12 +412,9 @@ def display_truncate_warning(dfs_allow_truncate):
 
 def execute_checks_for_active_master(env=None):
   import params
-  # If hawq standby is not installed, skip active master indentification check as hawq master is considered only active
-  if params.hawq_standby is None:
-    return execute_start_command(env=None)
-  # If hawq standby is installed as per topology, perform active master identification checks.
   active_master_result = get_active_master_host()
-  # If active master hostname is the current local host, execute start command
+  # If active master hostname is the current local host, execute start command. 
+  # In single node installation, localhost will always be the active
   if active_master_result == get_hostname():
     execute_start_command(env=None)
   # If active master hostname is not the current local host but in the list of masters, it will be the standby master
@@ -428,6 +425,8 @@ def execute_checks_for_active_master(env=None):
     raise Exception(active_master_result)
 
 def get_active_master_host():
+  if params.hawq_standby is None:
+    return params.hawq_master #In single node installation, hawq_master will always be the master
   if datadir_and_postmaster_opts_exists():
     return identify_active_master()
 
