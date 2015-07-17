@@ -425,6 +425,7 @@ def execute_checks_for_active_master(env=None):
     raise Exception(active_master_result)
 
 def get_active_master_host():
+  import params
   if params.hawq_standby is None:
     return params.hawq_master #In single node installation, hawq_master will always be the master
   if datadir_and_postmaster_opts_exists():
