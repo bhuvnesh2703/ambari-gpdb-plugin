@@ -6,9 +6,6 @@ config = Script.get_config()
 
 hdfs_supergroup = config["configurations"]["hdfs-site"]["dfs.permissions.superusergroup"]
 user_group      = "hadoop"
-with open("/tmp/currenthostname", "w") as fh:
-  fh.write(str(config["hostname"]))
-
 hawq_standby = None
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
