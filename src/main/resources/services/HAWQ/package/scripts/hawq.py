@@ -416,15 +416,18 @@ def execute_checks_for_active_master(env=None):
   if params.hawq_standby is None:
     return execute_start_command(env=None)
   # If hawq standby is installed as per topology, perform active master identification checks.
-  active_master_result = is_localhost_active_master(env=None)
-  if active_master_result is True:
+  active_master_result = get_active_master_host(env=None)
+  # If active master hostname is the current local host, execute start command
+  if active_master_result == get_hostname():
     execute_start_command(env=None)
-  elif active_master_result is False:
+  # If active master hostname is not the current local host but in the list of masters, it will be the standby master
+  elif active_master_result in [params.hawq_standby, params.hawq_master]:
     Logger.info("This host is not the active master, skipping requested operation.")
+  # If active master result is neither the master, it is the returned failure message
   else:
     raise Exception(active_master_result)
 
-def is_localhost_active_master(env=None):
+def get_active_master_host(env=None):
   if datadir_and_postmaster_opts_exists(env=None):
     return identify_active_master()
 
@@ -472,9 +475,9 @@ def identify_active_master():
   _x_in_master_contents = _x_in_postmaster_opts(master_postmaster_opts_content)
   _x_in_standby_contents = _x_in_postmaster_opts(standby_postmaster_opts_content)
   if _x_in_master_contents and not _x_in_standby_contents:
-    return hostname == params.hawq_master
+    return params.hawq_master
   if not _x_in_master_contents and _x_in_standby_contents:
-    return hostname == params.hawq_standby
+    return params.hawq_standby
   if _x_in_master_contents and _x_in_standby_contents:
     """
     Conflict, both masters have -x flag. It appears that standby might have been activated to master.  Mostly, both the master servers will not have value of -x as 0 at the same time.  If anyone is havin
@@ -490,9 +493,9 @@ def use_mtime_dbid_to_identify_master(hostname):
   master_postmaster_mtime = params.master_obj.read_mtime_postmaster_opts()
   standby_postmaster_mtime = params.standby_obj.read_mtime_postmaster_opts()
   if master_postmaster_mtime > standby_postmaster_mtime and standby_dbid_on_master == '"0"' and standby_dbid_on_standby !='"0"':
-    return hostname == params.hawq_master
+    return params.hawq_master
   elif  master_postmaster_mtime < standby_postmaster_mtime and standby_dbid_on_standby == '"0"' and standby_dbid_on_master !='"0"':
-    return hostname == params.hawq_standby
+    return params.hawq_standby
   """
   If control reaches here, it indicates that an active master cannot be identified. Return failure message
   """
