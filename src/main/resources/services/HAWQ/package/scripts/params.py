@@ -10,7 +10,6 @@ with open("/tmp/currenthostname", "w") as fh:
   fh.write(str(config["hostname"]))
 
 hawq_standby = None
-hawq_master = None
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 hawq_master_dir = '/data/hawq/master'
