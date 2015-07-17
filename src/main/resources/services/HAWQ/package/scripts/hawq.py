@@ -474,7 +474,7 @@ def identify_active_master():
   if _x_in_master_contents and not _x_in_standby_contents:
     return hostname == params.hawq_master
   if not _x_in_master_contents and _x_in_standby_contents:
-    return hostname == params.hawq_master
+    return hostname == params.hawq_standby
   if _x_in_master_contents and _x_in_standby_contents:
     """
     Conflict, both masters have -x flag. It appears that standby might have been activated to master.  Mostly, both the master servers will not have value of -x as 0 at the same time.  If anyone is havin
