@@ -416,7 +416,7 @@ def execute_checks_for_active_master(env=None):
   if params.hawq_standby is None:
     return execute_start_command(env=None)
   # If hawq standby is installed as per topology, perform active master identification checks.
-  active_master_result = get_active_master_host(env=None)
+  active_master_result = get_active_master_host()
   # If active master hostname is the current local host, execute start command
   if active_master_result == get_hostname():
     execute_start_command(env=None)
@@ -427,8 +427,8 @@ def execute_checks_for_active_master(env=None):
   else:
     raise Exception(active_master_result)
 
-def get_active_master_host(env=None):
-  if datadir_and_postmaster_opts_exists(env=None):
+def get_active_master_host():
+  if datadir_and_postmaster_opts_exists():
     return identify_active_master()
 
 def execute_start_command(env=None):
