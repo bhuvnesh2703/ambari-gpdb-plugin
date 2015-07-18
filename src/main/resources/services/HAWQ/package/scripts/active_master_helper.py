@@ -7,7 +7,7 @@ UNABLE_TO_IDENTIFY_ACTIVE_MASTER = "Unable to identify active hawq master. Conte
 
 def get_last_modified_time(hostname, filepath):
   cmd = "stat -c %Y {0}".format(filepath)
-  returncode, stdoutdata, stderrdata = subprocess_command_with_results(hostname)
+  returncode, stdoutdata, stderrdata = subprocess_command_with_results(cmd, hostname)
   return stdoutdata
 
 def get_standby_dbid(hostname, filepath):
