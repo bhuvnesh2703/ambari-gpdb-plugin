@@ -1,6 +1,5 @@
 from resource_management import *
 import os
-from master_checks_helper import HawqMaster
 
 config = Script.get_config()
 
@@ -105,6 +104,4 @@ if config["commandType"] == 'EXECUTION_COMMAND':
 
   segments_per_node = len(hawq_data_dir.split())
   hawq_master_data_dir = os.path.join(hawq_master_dir, seg_prefix + "-1")
-  master_obj = HawqMaster(hawq_master, hawq_master_data_dir, hawq_user)
-  if hawq_standby is not None:
-    standby_obj = HawqMaster(hawq_standby, hawq_master_data_dir, hawq_user)
+  postmaster_opts_filepath = os.path.join(hawq_master_data_dir, "postmaster.opts")

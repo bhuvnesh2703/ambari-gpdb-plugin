@@ -8,11 +8,14 @@ import subprocess
 import pwd
 import time
 import filecmp
+import socket
+import active_master_helper
 
-POSTMASTER_OPTS_MISSING = "Data directory exists on the master server {0}, but {1}/postmaster.opts is missing.\nPlease execute database start operation from active hawq master using command line until its fixed as without postmaster.opts active master cannot be identified.\nNote: postmaster.opts will be automatically created during hawq startup.\nRefer to hawq documentation for required commmands."
-MASTER_DATA_DIRECTORY_MISSING = "The cluster is configured with hawq master and standby server, however master data directory {0} is missing on host {1}.\nPlease execute database start operation from command line until its fixed, as without master data directory active master cannot be identified.\nRefer to hawq documentation for required commmands."
+HAWQ_START_HELP = "\nSteps to start hawq database from active hawq master:\nLogin as gpadmin user: su - gpadmin\nSource greenplum_path.sh: source /usr/local/hawq/greenplum_path.sh\nStart database: gpstart -a -d <master_data_directory>."
+POSTMASTER_OPTS_MISSING = "{0}/postmaster.opts is not found, kind validate if master data directory exists along with postmaster.opts file on both hawq master and standby servers.\nPlease execute database start operation from active hawq master until its fixed, as without postmaster.opts available on both master servers active master cannot be identified.\nNote: postmaster.opts will be automatically created during hawq startup. " + HAWQ_START_HELP 
+MASTER_DATA_DIRECTORY_MISSING = "The cluster is configured with hawq master and standby server, however master data directory {0} is missing on host {1}.\nPlease execute database start operation from command line until its fixed, as without master data directory active master cannot be identified. " + HAWQ_START_HELP
 DFS_ALLOW_TRUNCATE_ERROR_MESSAGE = "dfs.allow.truncate property in hdfs-site.xml file should be set to True. Please review HAWQ installation guide for more information."
-UNABLE_TO_IDENTIFY_ACTIVE_MASTER = "Unable to identify active hawq master. Contents of {0}/postmasters.opts file are inconsistent on hawq master and standby due to which active master cannot be identified. Please perform the required operation from command line.\nRefer to hawq documentation for required commands." 
+UNABLE_TO_IDENTIFY_ACTIVE_MASTER = "Unable to identify active hawq master. Contents of {0}/postmasters.opts file are inconsistent on hawq master and standby due to which active master cannot be identified. Please perform the required operation from command line. " + HAWQ_START_HELP
 
 def verify_segments_state(env):
   import params
@@ -263,8 +266,15 @@ def master_configure(env):
   command = "echo {0} > {1}/master-dir".format(params.hawq_master_dir, os.path.expanduser('~' + params.hawq_user))
   Execute(command, user=params.hawq_user, timeout=600)
 
-def initialize_db(env=None):
+def raise_exception_based_on_truncate_setting(dfs_allow_truncate):
+  import custom_params
+  if not dfs_allow_truncate and custom_params.enforce_hdfs_truncate:
+    raise Exception(DFS_ALLOW_TRUNCATE_ERROR_MESSAGE)
+
+def init_hawq(env=None):
   import params
+  dfs_allow_truncate = check_truncate_setting()
+  raise_exception_based_on_truncate_setting(dfs_allow_truncate)
   if params.security_enabled:
     kinit = "/usr/bin/kinit -kt {0} {1};".format(params._hdfs_headless_keytab, params._hdfs_headless_princpal_name_with_realm)
     cmd_setup_dir = "hdfs dfs -mkdir -p /user/gpadmin && hdfs dfs -chown -R gpadmin:gpadmin /user/gpadmin && hdfs dfs -chmod 777 /user/gpadmin;"
@@ -307,8 +317,10 @@ def initialize_db(env=None):
     if 'returned 1' in ex.message:
       print ex.message
       pass # gpinitsystem returns 1 when warnings are present, even if install is successful
+      display_truncate_warning(dfs_allow_truncate)
     else:
       raise ex
+  display_truncate_warning(dfs_allow_truncate)
 
 # The below function returns current state of parameters enable_secure_filesystem and krb_server_keyfile
 def get_postgres_secure_param_statuses():
@@ -359,31 +371,23 @@ def set_security():
   command = kinit+cmd_setup_dir
   Execute(command, user=params.hdfs_superuser, timeout=600)
 
-def start_dbinit(env=None):
-  dfs_allow_truncate = check_truncate_setting()
-  initialize_db(env) # Initialization will start database as well, so skip starting again
-  display_truncate_warning(dfs_allow_truncate)
-
-def master_start(env=None):
+def start_hawq(env=None):
   import params
+  hostname = socket.gethostname()
   if not is_db_initialized():
-    if get_hostname() == params.hawq_master:
-      start_dbinit(env=None)
-    elif get_hostname() == params.hawq_standby:
+    if hostname == params.hawq_master:
+      init_hawq(env=None)
+    elif hostname == params.hawq_standby:
       Logger.info("Database initialization using gpinitsystem has been triggered on host {0}, please wait for its completion.".format(params.hawq_master))
   else:
-    execute_checks_for_active_master(env=None)
+    start_if_active_hawq_master(env=None)
 
 def is_db_initialized():
   import params
   if params.hawq_standby is None:
     return os.path.exists(params.hawq_master_data_dir)
-  return params.master_obj.is_datadir_existing() or params.standby_obj.is_datadir_existing()
-
-def get_hostname():
-  import socket
-  return socket.gethostname()
-
+  return active_master_helper.is_datadir_existing_on_master_hosts()
+  
 def check_truncate_setting():
   """
   Check dfs.allow.truncate in hdfs-site.xml and enforce_hdfs_truncate in custom_params.py for hawq start
@@ -394,15 +398,9 @@ def check_truncate_setting():
   """
   import custom_params
   config = Script.get_config()
-
-  dfs_allow_truncate = None
+  dfs_allow_truncate = False
   if "dfs.allow.truncate" in config["configurations"]["hdfs-site"]:
     dfs_allow_truncate=config["configurations"]["hdfs-site"]["dfs.allow.truncate"] in ["true", "True", True]
-  else:
-    dfs_allow_truncate=False
-
-  if not dfs_allow_truncate and custom_params.enforce_hdfs_truncate:
-    raise Exception(DFS_ALLOW_TRUNCATE_ERROR_MESSAGE)
   return dfs_allow_truncate
 
 def display_truncate_warning(dfs_allow_truncate):
@@ -410,101 +408,42 @@ def display_truncate_warning(dfs_allow_truncate):
   if not dfs_allow_truncate and not custom_params.enforce_hdfs_truncate:
     print "**WARNING** " + DFS_ALLOW_TRUNCATE_ERROR_MESSAGE
 
-def execute_checks_for_active_master(env=None):
+def start_if_active_hawq_master(env=None):
   import params
-  active_master_result = get_active_master_host()
+  active_master_host = get_active_master_host()
   # If active master hostname is the current local host, execute start command. 
   # In single node installation, localhost will always be the active
-  if active_master_result == get_hostname():
-    execute_start_command(env=None)
+  if active_master_host == socket.gethostname():
+    return execute_start_command(env=None)
   # If active master hostname is not the current local host but in the list of masters, it will be the standby master
-  elif active_master_result in [params.hawq_standby, params.hawq_master]:
-    Logger.info("This host is not the active master, skipping requested operation.")
-  # If active master result is neither the master, it is the returned failure message
-  else:
-    raise Exception(active_master_result)
+  if active_master_host in [params.hawq_standby, params.hawq_master]:
+    return Logger.info("This host is not the active master, skipping requested operation.")
+  # If control reaches here, it indicates that the host name returned by active master host call is not in the list of configured hawq master and standby hostname. Raise an exception to report it
+  configured_hosts = [params.hawq_master]
+  if params.hawq_standby is not None:
+    configured_hosts.append(params.hawq_standby)
+  raise Exception("Host {0} is not in the configured master hosts {1}.".format(active_master_host, " and ".join(configured_hosts)))
 
 def get_active_master_host():
   import params
   if params.hawq_standby is None:
     return params.hawq_master #In single node installation, hawq_master will always be the master
-  if datadir_and_postmaster_opts_exists():
-    return identify_active_master()
+  # If cluster is configured with master and standby, ensure that postmaster.opts file is available
+  if active_master_helper.is_postmaster_opts_missing_on_master_hosts():
+    raise Exception(POSTMASTER_OPTS_MISSING.format(params.postmaster_opts_filepath))
+  return active_master_helper.identify_active_master()
 
 def execute_start_command(env=None):
   import params
+  import custom_params
   dfs_allow_truncate = check_truncate_setting()
+  raise_exception_based_on_truncate_setting(dfs_allow_truncate)
   set_security()
   command = "source /usr/local/hawq/greenplum_path.sh; gpstart -a -d {0}/gpseg-1".format(params.hawq_master_dir)
   Execute(command, user=params.hawq_user, timeout=600)
   display_truncate_warning(dfs_allow_truncate)
 
-def datadir_and_postmaster_opts_exists(env=None):
-  import params
-  # If master data directory does not exist on any one of the node, active master cannot be identified
-  # If master data directory exists, but postmaster.opts is missing on any of the servers, active master cannot be identified
-  for obj in params.master_obj, params.standby_obj:
-    if not obj.is_datadir_existing():
-      raise Exception(MASTER_DATA_DIRECTORY_MISSING.format(params.hawq_master_data_dir, obj.hostname))
-    if obj.is_postmaster_opts_missing():
-      raise Exception(POSTMASTER_OPTS_MISSING.format(obj.hostname, params.hawq_master_data_dir))
-  return True
-
-def identify_active_master():
-  """
-  Example contents of postmaster.opts in 2 different cases
-  Case 1: Master configured with Standby:
-  Contents on master postmaster.opts
-  postgres "-D" "/data/hawq/master/gpseg-1" "-p" "5432" "-b" "1" "-z" "10" "--silent-mode=true" "-i" "-M" "master" "-C" "-1" "-x" "12" "-E"
-  Contents of standby postmaster.opts:
-  postgres "-D" "/data/hawq/master/gpseg-1" "-p" "5432" "-b" "12" "-C" "-1" "-z" "10" "-i"
-
-  Case 2: Master configured without standby:
-  postgres "-D" "/data/hawq/master/gpseg-1" "-p" "5432" "-b" "1" "-z" "10" "--silent-mode=true" "-i" "-M" "master" "-C" "-1" "-x" "0" "-E"
-
-  Interpretation:
-  postmaster.opts (if present) contains information for the segment startup parameters. Flag "-x" can indicate if the server is a master (with or without standby) or standby
-  -x = 0 : Master server (Standby is not configured)
-  -x = n : Master server (Standby is configured)
-  -x flag not available: Standby server
-  """
-  import params
-  hostname = get_hostname()
-  master_postmaster_opts_content = params.master_obj.read_postmaster_opts()
-  standby_postmaster_opts_content = params.standby_obj.read_postmaster_opts()
-  _x_in_master_contents = _x_in_postmaster_opts(master_postmaster_opts_content)
-  _x_in_standby_contents = _x_in_postmaster_opts(standby_postmaster_opts_content)
-  if _x_in_master_contents and not _x_in_standby_contents:
-    return params.hawq_master
-  if not _x_in_master_contents and _x_in_standby_contents:
-    return params.hawq_standby
-  if _x_in_master_contents and _x_in_standby_contents:
-    """
-    Conflict, both masters have -x flag. It appears that standby might have been activated to master.  Mostly, both the master servers will not have value of -x as 0 at the same time.  If anyone is havin
-  g non-zero dbid for standby, and the other one as 0. Server with dbid 0 (standby activated to master) is highly likely the master server.  Because if non-zero dbid host is considered to be active then th
-  e other server should not have had the -x flag and should have the contents of standby
-    """
-    return use_mtime_dbid_to_identify_master(hostname)
-
-def use_mtime_dbid_to_identify_master(hostname):
-  import params
-  standby_dbid_on_master = params.master_obj.get_standby_dbid()
-  standby_dbid_on_standby = params.standby_obj.get_standby_dbid()
-  master_postmaster_mtime = params.master_obj.read_mtime_postmaster_opts()
-  standby_postmaster_mtime = params.standby_obj.read_mtime_postmaster_opts()
-  if master_postmaster_mtime > standby_postmaster_mtime and standby_dbid_on_master == '"0"' and standby_dbid_on_standby !='"0"':
-    return params.hawq_master
-  elif  master_postmaster_mtime < standby_postmaster_mtime and standby_dbid_on_standby == '"0"' and standby_dbid_on_master !='"0"':
-    return params.hawq_standby
-  """
-  If control reaches here, it indicates that an active master cannot be identified. Return failure message
-  """
-  return UNABLE_TO_IDENTIFY_ACTIVE_MASTER.format(params.hawq_master_data_dir)
-
-def _x_in_postmaster_opts(content):
-  return '"-x"' in content
-
-def master_stop(env=None):
+def stop_hawq(env=None):
   """
   Case 1: If database is running, gpsyncmaster process LISTENS on hawq master port on standby
   [root@hdm1 ~]# netstat -tupln | egrep 5432

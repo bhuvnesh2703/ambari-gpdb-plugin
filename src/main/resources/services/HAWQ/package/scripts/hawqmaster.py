@@ -16,10 +16,10 @@ class HawqMaster(Script):
 
   def start(self, env):
     self.configure(env)
-    hawq.master_start(env)
+    hawq.start_hawq(env)
 
   def stop(self, env):
-    hawq.master_stop(env)
+    hawq.stop_hawq(env)
 
   def status(self, env):
     import status_params
