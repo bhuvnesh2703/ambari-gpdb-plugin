@@ -2,8 +2,10 @@ from resource_management import *
 from common import subprocess_command_with_results
 import os
 
-HAWQ_START_HELP = "\nSteps to start hawq database from active hawq master:\nLogin as gpadmin user: su - gpadmin\nSource greenplum_path.sh: source /usr/local/hawq/greenplum_path.sh\nStart database: gpstart -a -d <master_data_directory>."
-UNABLE_TO_IDENTIFY_ACTIVE_MASTER = "Unable to identify active hawq master. Contents of {0} file are inconsistent on hawq master and standby due to which active hawq master cannot be identified. Please start the database from active hawq master manually." + HAWQ_START_HELP
+HAWQ_START_HELP = "\nSteps to start hawq database from active hawq master:\nLogin as gpadmin user: su - gpadmin\nSource greenplum_path.sh: source /usr/local/hawq/greenplum_path.sh\nStart database: gpstart -a -d {0}."
+UNABLE_TO_IDENTIFY_ACTIVE_MASTER = "Unable to identify active hawq master. Contents of {0}/postmaster.opts file are inconsistent on hawq master and standby due to which active hawq master cannot be identified. Please start the database from active hawq master manually." + HAWQ_START_HELP
+POSTMASTER_OPTS_MISSING = "{0}/postmaster.opts is not found, kind validate if master data directory exists along with postmaster.opts file on both hawq master and standby servers.\nPlease execute database start operation from active hawq master until its fixed, as without postmaster.opts available on both master servers active master cannot be identified.\nNote: postmaster.opts will be automatically created during hawq startup. " + HAWQ_START_HELP
+BOTH_MASTER_HAS_STANDBY_CONTENT = "Unable to identify active hawq master. Content of {0}/postmaster.opts on hawq master and standby host indicates that they are currently acting as standby servers. If orginal hawq master is now not available, please activate standby to resume database operations."
 
 def get_last_modified_time(hostname, filepath):
   cmd = "stat -c %Y {0}".format(filepath)
@@ -74,6 +76,12 @@ def identify_active_master():
     return params.hawq_standby
   if _x_in_master_contents and _x_in_standby_contents:
     return identify_active_master_by_timestamp(hostname)
+  """
+  If control reaches here, it indicates that an active master cannot be identified. Return appropriate failure message
+  """
+  if not _x_in_master_contents and not _x_in_standby_contents:
+    raise Exception(BOTH_MASTER_HAS_STANDBY_CONTENT.format(params.hawq_master_data_dir))
+  raise Exception(UNABLE_TO_IDENTIFY_ACTIVE_MASTER.format(params.hawq_master_data_dir))
 
 def identify_active_master_by_timestamp(hostname):
   """
@@ -89,7 +97,3 @@ def identify_active_master_by_timestamp(hostname):
     return params.hawq_master
   elif  master_postmaster_mtime < standby_postmaster_mtime and standby_dbid_on_standby == '"0"' and standby_dbid_on_master !='"0"':
     return params.hawq_standby
-  """
-  If control reaches here, it indicates that an active master cannot be identified. Return failure message
-  """
-  raise Exception(UNABLE_TO_IDENTIFY_ACTIVE_MASTER.format(params.postmaster_opts_filepath))

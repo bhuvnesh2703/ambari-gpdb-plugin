@@ -11,8 +11,6 @@ import filecmp
 import socket
 import active_master_helper
 
-HAWQ_START_HELP = "\nSteps to start hawq database from active hawq master:\nLogin as gpadmin user: su - gpadmin\nSource greenplum_path.sh: source /usr/local/hawq/greenplum_path.sh\nStart database: gpstart -a -d <master_data_directory>."
-POSTMASTER_OPTS_MISSING = "{0}/postmaster.opts is not found, kind validate if master data directory exists along with postmaster.opts file on both hawq master and standby servers.\nPlease execute database start operation from active hawq master until its fixed, as without postmaster.opts available on both master servers active master cannot be identified.\nNote: postmaster.opts will be automatically created during hawq startup. " + HAWQ_START_HELP 
 DFS_ALLOW_TRUNCATE_ERROR_MESSAGE = "dfs.allow.truncate property in hdfs-site.xml file should be set to True. Please review HAWQ installation guide for more information."
 
 def verify_segments_state(env):
@@ -428,7 +426,7 @@ def get_active_master_host():
     return params.hawq_master #In single node installation, hawq_master will always be the master
   # If cluster is configured with master and standby, ensure that postmaster.opts file is available
   if active_master_helper.is_postmaster_opts_missing_on_master_hosts():
-    raise Exception(POSTMASTER_OPTS_MISSING.format(params.postmaster_opts_filepath))
+    raise Exception(active_master_helper.POSTMASTER_OPTS_MISSING.format(params.hawq_master_data_dir))
   return active_master_helper.identify_active_master()
 
 def execute_start_command(env=None):
