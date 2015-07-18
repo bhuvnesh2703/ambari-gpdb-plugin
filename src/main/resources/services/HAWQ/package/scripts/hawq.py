@@ -372,7 +372,7 @@ def set_security():
 def start_hawq(env=None):
   import params
   hostname = socket.gethostname()
-  if not is_db_initialized():
+  if not is_hawq_initialized():
     if hostname == params.hawq_master:
       init_hawq(env=None)
     elif hostname == params.hawq_standby:
@@ -380,7 +380,7 @@ def start_hawq(env=None):
   else:
     start_if_active_hawq_master(env=None)
 
-def is_db_initialized():
+def is_hawq_initialized():
   import params
   if params.hawq_standby is None:
     return os.path.exists(params.hawq_master_data_dir)
