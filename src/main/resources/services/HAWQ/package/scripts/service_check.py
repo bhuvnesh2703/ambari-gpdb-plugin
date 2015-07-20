@@ -9,8 +9,8 @@ class HAWQServiceCheck(Script):
   test_user = "gpadmin"
 
   def __init__(self):
-    self.sql_command = "su - " + self.test_user + " -c \\\"source /usr/local/hawq/greenplum_path.sh && psql -c '{0};'\\\""
-    self.sql_noheader_command = "su - " + self.test_user + " -c \\\"source /usr/local/hawq/greenplum_path.sh && psql -t -c '{0};'\\\""
+    self.sql_command = "source /usr/local/hawq/greenplum_path.sh && psql -c \\\"{0};\\\""
+    self.sql_noheader_command = "source /usr/local/hawq/greenplum_path.sh && psql -t -c \\\"{0};\\\""
     self.active_master_host = None
 
   def service_check(self, env):

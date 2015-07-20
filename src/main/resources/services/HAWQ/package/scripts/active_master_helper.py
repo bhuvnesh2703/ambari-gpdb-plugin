@@ -38,6 +38,7 @@ def is_postmaster_opts_missing_on_master_hosts():
   return is_file_missing(params.hawq_master, params.postmaster_opts_filepath) or is_file_missing(params.hawq_standby, params.postmaster_opts_filepath)
 
 def is_file_missing(hostname, filename):
+  import params
   cmd = "[ -f {0} ]".format(filename)
   returncode, stdoutdata, stderrdata = subprocess_command_with_results(params.hawq_user, cmd, hostname)
   return not(returncode == 0)
@@ -47,6 +48,7 @@ def is_datadir_existing_on_master_hosts():
   return is_dir_existing(params.hawq_master, params.hawq_master_data_dir) or is_dir_existing(params.hawq_standby, params.hawq_master_data_dir)
 
 def is_dir_existing(hostname, datadir):
+  import params
   cmd = "[ -d {0} ]".format(datadir)
   returncode, stdoutdata, stderrdata = subprocess_command_with_results(params.hawq_user, cmd, hostname)
   return returncode == 0
