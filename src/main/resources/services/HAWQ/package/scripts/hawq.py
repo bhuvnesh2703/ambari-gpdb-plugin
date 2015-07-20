@@ -8,7 +8,6 @@ import subprocess
 import pwd
 import time
 import filecmp
-import socket
 import active_master_helper
 import custom_params
 
@@ -263,9 +262,6 @@ def master_configure(env):
   command = "echo {0} > {1}/master-dir".format(params.hawq_master_dir, os.path.expanduser('~' + params.hawq_user))
   Execute(command, user=params.hawq_user, timeout=600)
 
-def raise_truncate_exception():
-  raise Exception(DFS_ALLOW_TRUNCATE_ERROR_MESSAGE)
-
 def is_truncate_exception_required(dfs_allow_truncate):
   return (not dfs_allow_truncate and custom_params.enforce_hdfs_truncate)
 
@@ -273,7 +269,7 @@ def init_hawq(env=None):
   import params
   dfs_allow_truncate = check_truncate_setting()
   if is_truncate_exception_required(dfs_allow_truncate):
-    raise_truncate_exception()
+    raise Exception(DFS_ALLOW_TRUNCATE_ERROR_MESSAGE)
   if params.security_enabled:
     kinit = "/usr/bin/kinit -kt {0} {1};".format(params._hdfs_headless_keytab, params._hdfs_headless_princpal_name_with_realm)
     cmd_setup_dir = "hdfs dfs -mkdir -p /user/gpadmin && hdfs dfs -chown -R gpadmin:gpadmin /user/gpadmin && hdfs dfs -chmod 777 /user/gpadmin;"
@@ -318,7 +314,7 @@ def init_hawq(env=None):
     else:
       raise ex
   if is_truncate_warning_required(dfs_allow_truncate):
-    display_truncate_warning()
+    print "**WARNING** " + DFS_ALLOW_TRUNCATE_ERROR_MESSAGE
 
 # The below function returns current state of parameters enable_secure_filesystem and krb_server_keyfile
 def get_postgres_secure_param_statuses():
@@ -371,11 +367,10 @@ def set_security():
 
 def start_hawq(env=None):
   import params
-  hostname = socket.gethostname()
   if not is_hawq_initialized():
-    if hostname == params.hawq_master:
-      init_hawq(env=None)
-    elif hostname == params.hawq_standby:
+    if params.hostname == params.hawq_master:
+      init_hawq(env=None) # Init will start the database as well, so skip starting again
+    elif params.hostname == params.hawq_standby:
       Logger.info("Database initialization using gpinitsystem has been triggered on host {0}, please wait for its completion.".format(params.hawq_master))
   else:
     start_if_active_hawq_master(env=None)
@@ -403,15 +398,12 @@ def check_truncate_setting():
 def is_truncate_warning_required(dfs_allow_truncate):
   return (not dfs_allow_truncate and not custom_params.enforce_hdfs_truncate)
 
-def display_truncate_warning():
-  print "**WARNING** " + DFS_ALLOW_TRUNCATE_ERROR_MESSAGE
-
 def start_if_active_hawq_master(env=None):
   import params
   active_master_host = get_active_master_host()
   # If active master hostname is the current local host, execute start command. 
   # In single node installation, localhost will always be the active
-  if active_master_host == socket.gethostname():
+  if active_master_host == params.hostname
     return execute_start_command(env=None)
   # If active master hostname is not the current local host but in the list of masters, it will be the standby master
   if active_master_host in [params.hawq_standby, params.hawq_master]:
@@ -435,12 +427,12 @@ def execute_start_command(env=None):
   import params
   dfs_allow_truncate = check_truncate_setting()
   if is_truncate_exception_required(dfs_allow_truncate):
-    raise_truncate_exception()
+    raise Exception(DFS_ALLOW_TRUNCATE_ERROR_MESSAGE)
   set_security()
   command = "source /usr/local/hawq/greenplum_path.sh; gpstart -a -d {0}/gpseg-1".format(params.hawq_master_dir)
   Execute(command, user=params.hawq_user, timeout=600)
   if is_truncate_warning_required(dfs_allow_truncate):
-    display_truncate_warning()
+    print "**WARNING** " + DFS_ALLOW_TRUNCATE_ERROR_MESSAGE
 
 def stop_hawq(env=None):
   """

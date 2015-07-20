@@ -63,6 +63,7 @@ if config["commandType"] == 'EXECUTION_COMMAND':
   set_os_parameters = False
   skip_preinstall_verification = True
   seg_prefix = "gpseg"
+  hostname = config['hostname']
 
   hawq_site_config = config["configurations"].get("hawq-site")
   if hawq_site_config:

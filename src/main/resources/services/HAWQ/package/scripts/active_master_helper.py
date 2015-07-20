@@ -3,9 +3,10 @@ from common import subprocess_command_with_results
 import os
 
 HAWQ_START_HELP = "\nSteps to start hawq database from active hawq master:\nLogin as gpadmin user: su - gpadmin\nSource greenplum_path.sh: source /usr/local/hawq/greenplum_path.sh\nStart database: gpstart -a -d {0}."
-UNABLE_TO_IDENTIFY_ACTIVE_MASTER = "Unable to identify active hawq master. Contents of {0}/postmaster.opts file are inconsistent on hawq master and standby due to which active hawq master cannot be identified. Please start the database from active hawq master manually." + HAWQ_START_HELP
+UNABLE_TO_IDENTIFY_ACTIVE_MASTER = "Unable to identify active hawq master. Contents of {0}/postmaster.opts file are inconsistent on hawq master and standby due to which active hawq master cannot be identified. Please start the database from active hawq master manually from command line." + HAWQ_START_HELP
 POSTMASTER_OPTS_MISSING = "{0}/postmaster.opts is not found, kind validate if master data directory exists along with postmaster.opts file on both hawq master and standby servers.\nPlease execute database start operation from active hawq master until its fixed, as without postmaster.opts available on both master servers active master cannot be identified.\nNote: postmaster.opts will be automatically created during hawq startup. " + HAWQ_START_HELP
 BOTH_MASTER_HAS_STANDBY_CONTENT = "Unable to identify active hawq master. Content of {0}/postmaster.opts on hawq master and standby host indicates that they are currently acting as standby servers. If orginal hawq master is now not available, please activate standby to resume database operations."
+MASTER_STARTED_IN_UTILITY_MODE = "{0}/postmaster.opts contents indicate that database was started in utility mode previously, due to which active master cannot be identified with certainty.\nPlease start the database in normal mode from active hawq master manually from command line for now to fix it." + HAWQ_START_HELP
 
 def get_last_modified_time(hostname, filepath):
   cmd = "stat -c %Y {0}".format(filepath)
@@ -68,8 +69,12 @@ def identify_active_master():
   """
   import params
   hostname = socket.gethostname()
-  _x_in_master_contents = '"-x"' in convert_postmaster_content_to_list(params.hawq_master, params.postmaster_opts_filepath)
-  _x_in_standby_contents = '"-x"' in convert_postmaster_content_to_list(params.hawq_standby, params.postmaster_opts_filepath)
+  master_postmaster_opts_content = convert_postmaster_content_to_list(params.hawq_master, params.postmaster_opts_filepath)
+  standby_postmaster_opts_content = convert_postmaster_content_to_list(params.hawq_standby, params.postmaster_opts_filepath)
+  if '"gp_role=utility"' in master_postmaster_opts_content or '"gp_role=utility"' in standby_postmaster_opts_content:
+    raise Exception(MASTER_STARTED_IN_UTILITY_MODE.format(params.hawq_master_data_dir))
+  _x_in_master_contents = '"-x"' in master_postmaster_opts_content
+  _x_in_standby_contents = '"-x"' in standby_postmaster_opts_content
   if _x_in_master_contents and not _x_in_standby_contents:
     return params.hawq_master
   if not _x_in_master_contents and _x_in_standby_contents:
