@@ -18,7 +18,7 @@
           <commandScript>
             <script>scripts/hawqmaster.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
+            <timeout>4000</timeout>
           </commandScript>
           <dependencies>
             <dependency>
