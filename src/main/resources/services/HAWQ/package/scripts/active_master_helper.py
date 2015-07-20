@@ -85,8 +85,7 @@ def identify_active_master():
 
 def identify_active_master_by_timestamp(hostname):
   """
-  Conflict, both masters have -x flag. It appears that standby might have been activated to master.  Mostly, both the master servers will not have value of -x as 0 at the same time.  If anyone is having non-zero dbid for standby, and the other one as 0. Server with dbid 0 (standby
- activated to master) is highly likely the master server.  Because if non-zero dbid host is considered to be active then the other server should not have had the -x flag and should have the contents of standby
+  Conflict, both masters have -x flag. It appears that standby might have been activated to master.  Mostly, both the master servers will not have value of -x as 0 at the same time.  If anyone is having non-zero dbid for standby, and the other one as 0. Server with dbid 0 (standby activated to master) is highly likely the master server.  Because if non-zero dbid host is considered to be active then the other server should not have had the -x flag and should have the contents of standby
   """
   import params
   standby_dbid_on_master = get_standby_dbid(params.hawq_master, params.postmaster_opts_filepath)

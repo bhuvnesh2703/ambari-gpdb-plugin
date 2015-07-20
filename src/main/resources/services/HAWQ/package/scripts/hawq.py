@@ -10,6 +10,7 @@ import time
 import filecmp
 import socket
 import active_master_helper
+import custom_params
 
 DFS_ALLOW_TRUNCATE_ERROR_MESSAGE = "dfs.allow.truncate property in hdfs-site.xml file should be set to True. Please review HAWQ installation guide for more information."
 
@@ -262,15 +263,17 @@ def master_configure(env):
   command = "echo {0} > {1}/master-dir".format(params.hawq_master_dir, os.path.expanduser('~' + params.hawq_user))
   Execute(command, user=params.hawq_user, timeout=600)
 
-def raise_exception_based_on_truncate_setting(dfs_allow_truncate):
-  import custom_params
-  if not dfs_allow_truncate and custom_params.enforce_hdfs_truncate:
-    raise Exception(DFS_ALLOW_TRUNCATE_ERROR_MESSAGE)
+def raise_truncate_exception():
+  raise Exception(DFS_ALLOW_TRUNCATE_ERROR_MESSAGE)
+
+def is_truncate_exception_required(dfs_allow_truncate):
+  return (not dfs_allow_truncate and custom_params.enforce_hdfs_truncate)
 
 def init_hawq(env=None):
   import params
   dfs_allow_truncate = check_truncate_setting()
-  raise_exception_based_on_truncate_setting(dfs_allow_truncate)
+  if is_truncate_exception_required(dfs_allow_truncate):
+    raise_truncate_exception()
   if params.security_enabled:
     kinit = "/usr/bin/kinit -kt {0} {1};".format(params._hdfs_headless_keytab, params._hdfs_headless_princpal_name_with_realm)
     cmd_setup_dir = "hdfs dfs -mkdir -p /user/gpadmin && hdfs dfs -chown -R gpadmin:gpadmin /user/gpadmin && hdfs dfs -chmod 777 /user/gpadmin;"
@@ -312,11 +315,10 @@ def init_hawq(env=None):
   except Fail as ex:
     if 'returned 1' in ex.message:
       print ex.message
-      pass # gpinitsystem returns 1 when warnings are present, even if install is successful
-      display_truncate_warning(dfs_allow_truncate)
     else:
       raise ex
-  display_truncate_warning(dfs_allow_truncate)
+  if is_truncate_warning_required(dfs_allow_truncate):
+    display_truncate_warning()
 
 # The below function returns current state of parameters enable_secure_filesystem and krb_server_keyfile
 def get_postgres_secure_param_statuses():
@@ -392,17 +394,17 @@ def check_truncate_setting():
       and enforce_hdfs_truncate=False -> starting hawq succeeds with a warning.
       and enforce_hdfs_truncate=True -> starting hawq fails
   """
-  import custom_params
   config = Script.get_config()
   dfs_allow_truncate = False
   if "dfs.allow.truncate" in config["configurations"]["hdfs-site"]:
     dfs_allow_truncate=config["configurations"]["hdfs-site"]["dfs.allow.truncate"] in ["true", "True", True]
   return dfs_allow_truncate
 
-def display_truncate_warning(dfs_allow_truncate):
-  import custom_params
-  if not dfs_allow_truncate and not custom_params.enforce_hdfs_truncate:
-    print "**WARNING** " + DFS_ALLOW_TRUNCATE_ERROR_MESSAGE
+def is_truncate_warning_required(dfs_allow_truncate):
+  return (not dfs_allow_truncate and not custom_params.enforce_hdfs_truncate)
+
+def display_truncate_warning():
+  print "**WARNING** " + DFS_ALLOW_TRUNCATE_ERROR_MESSAGE
 
 def start_if_active_hawq_master(env=None):
   import params
@@ -431,13 +433,14 @@ def get_active_master_host():
 
 def execute_start_command(env=None):
   import params
-  import custom_params
   dfs_allow_truncate = check_truncate_setting()
-  raise_exception_based_on_truncate_setting(dfs_allow_truncate)
+  if is_truncate_exception_required(dfs_allow_truncate):
+    raise_truncate_exception()
   set_security()
   command = "source /usr/local/hawq/greenplum_path.sh; gpstart -a -d {0}/gpseg-1".format(params.hawq_master_dir)
   Execute(command, user=params.hawq_user, timeout=600)
-  display_truncate_warning(dfs_allow_truncate)
+  if is_truncate_warning_required(dfs_allow_truncate):
+    display_truncate_warning()
 
 def stop_hawq(env=None):
   """
