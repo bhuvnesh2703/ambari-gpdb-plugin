@@ -20,7 +20,7 @@ class HAWQServiceCheck(Script):
     if params.hawq_standby is not None:
       configured_hosts.append(params.hawq_standby)
     if self.active_master_host not in configured_hosts:
-      raise Exception("Host {0} not in the list of configured hosts {1}.".format(self.active_master_host, " and ".join(configured_hosts)))
+      raise Exception("Host {0} not in the list of configured hosts {1}. Please execute service checks from the hawq active master manually.".format(self.active_master_host, " and ".join(configured_hosts)))
 
     hawq.verify_segments_state(env, self.active_master_host)
 
