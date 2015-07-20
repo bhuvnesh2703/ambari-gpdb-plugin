@@ -8,6 +8,8 @@ import subprocess
 import pwd
 import time
 import filecmp
+import active_master_helper
+import custom_params
 
 DFS_ALLOW_TRUNCATE_ERROR_MESSAGE = "dfs.allow.truncate property in hdfs-site.xml file should be set to True. Please review HAWQ installation guide for more information."
 
@@ -18,7 +20,6 @@ def verify_segments_state(env):
   remote_hostname = None
   if not os.path.exists(params.hawq_master_dir):
     remote_hostname = params.hawq_master
-
   (retcode, out, err) = subprocess_command_with_results(command, remote_hostname)
   print (retcode, out, err)
   if retcode:
@@ -261,8 +262,14 @@ def master_configure(env):
   command = "echo {0} > {1}/master-dir".format(params.hawq_master_dir, os.path.expanduser('~' + params.hawq_user))
   Execute(command, user=params.hawq_user, timeout=600)
 
-def master_dbinit(env=None):
+def is_truncate_exception_required(dfs_allow_truncate):
+  return (not dfs_allow_truncate and custom_params.enforce_hdfs_truncate)
+
+def init_hawq(env=None):
   import params
+  dfs_allow_truncate = check_truncate_setting()
+  if is_truncate_exception_required(dfs_allow_truncate):
+    raise Exception(DFS_ALLOW_TRUNCATE_ERROR_MESSAGE)
   if params.security_enabled:
     kinit = "/usr/bin/kinit -kt {0} {1};".format(params._hdfs_headless_keytab, params._hdfs_headless_princpal_name_with_realm)
     cmd_setup_dir = "hdfs dfs -mkdir -p /user/gpadmin && hdfs dfs -chown -R gpadmin:gpadmin /user/gpadmin && hdfs dfs -chmod 777 /user/gpadmin;"
@@ -304,9 +311,10 @@ def master_dbinit(env=None):
   except Fail as ex:
     if 'returned 1' in ex.message:
       print ex.message
-      pass # gpinitsystem returns 1 when warnings are present, even if install is successful
     else:
       raise ex
+  if is_truncate_warning_required(dfs_allow_truncate):
+    print "**WARNING** " + DFS_ALLOW_TRUNCATE_ERROR_MESSAGE
 
 # The below function returns current state of parameters enable_secure_filesystem and krb_server_keyfile
 def get_postgres_secure_param_statuses():
@@ -357,46 +365,92 @@ def set_security():
   command = kinit+cmd_setup_dir
   Execute(command, user=params.hdfs_superuser, timeout=600)
 
-def master_start(env=None):
+def start_hawq(env=None):
+  import params
+  if is_hawq_initialized():
+    start_if_active_hawq_master(env=None)
+  else:
+    if params.hostname == params.hawq_master:
+      init_hawq(env=None) # Init will start the database as well, so skip starting again
+    elif params.hostname == params.hawq_standby:
+      Logger.info("Database initialization using gpinitsystem has been triggered on host {0}, please wait for its completion.".format(params.hawq_master))
+
+def is_hawq_initialized():
+  import params
+  if params.hawq_standby is None:
+    return os.path.exists(params.hawq_master_data_dir)
+  return active_master_helper.is_datadir_existing_on_master_hosts()
+  
+def check_truncate_setting():
   """
   Check dfs.allow.truncate in hdfs-site.xml and enforce_hdfs_truncate in custom_params.py for hawq start
   if dfs.allow.truncate=True --> starting hawq succeeds
-  if dfs.allow.truncate=False 
-     and enforce_hdfs_truncate=False -> starting hawq succeeds with a warning.
-     and enforce_hdfs_truncate=True -> starting hawq fails
+  if dfs.allow.truncate=False
+      and enforce_hdfs_truncate=False -> starting hawq succeeds with a warning.
+      and enforce_hdfs_truncate=True -> starting hawq fails
   """
-  import custom_params
   config = Script.get_config()
-  
-  dfs_allow_truncate = None
+  dfs_allow_truncate = False
   if "dfs.allow.truncate" in config["configurations"]["hdfs-site"]:
     dfs_allow_truncate=config["configurations"]["hdfs-site"]["dfs.allow.truncate"] in ["true", "True", True]
-  else:
-    dfs_allow_truncate=False
+  return dfs_allow_truncate
 
-  if not dfs_allow_truncate and custom_params.enforce_hdfs_truncate:
-    raise Exception(DFS_ALLOW_TRUNCATE_ERROR_MESSAGE)
+def is_truncate_warning_required(dfs_allow_truncate):
+  return (not dfs_allow_truncate and not custom_params.enforce_hdfs_truncate)
 
-  source = "source /usr/local/hawq/greenplum_path.sh;"
-
+def start_if_active_hawq_master(env=None):
   import params
-  master_dbid_path = params.hawq_master_dir + params.hawq_master_dbid_path_suffix
-  # check if we have initialized. 
-  if not os.path.exists(master_dbid_path):
-    master_dbinit(env) # dbinit will also start hawq
-  else:
-    set_security()
-    cmd = "gpstart -a -d {0}/gpseg-1".format(params.hawq_master_dir)
-    command = source + cmd
-    Execute(command, user=params.hawq_user, timeout=600)
+  active_master_host = get_active_master_host()
+  # If active master hostname is the current local host, execute start command. 
+  # In single node installation, localhost will always be the active
+  if active_master_host == params.hostname:
+    return execute_start_command(env=None)
+  # If active master hostname is not the current local host but in the list of masters, it will be the standby master
+  if active_master_host in [params.hawq_standby, params.hawq_master]:
+    return Logger.info("This host is not the active master, skipping requested operation.")
+  # If control reaches here, it indicates that the host name returned by active master host call is not in the list of configured hawq master and standby hostname. Raise an exception to report it
+  configured_hosts = [params.hawq_master]
+  if params.hawq_standby is not None:
+    configured_hosts.append(params.hawq_standby)
+  raise Exception("Host {0} is not in the configured master hosts {1}.".format(active_master_host, " and ".join(configured_hosts)))
 
-  if not dfs_allow_truncate and not custom_params.enforce_hdfs_truncate:
+def get_active_master_host():
+  import params
+  if params.hawq_standby is None:
+    return params.hawq_master #In single node installation, hawq_master will always be the master
+  # If cluster is configured with master and standby, ensure that postmaster.opts file is available
+  if active_master_helper.is_postmaster_opts_missing_on_master_hosts():
+    raise Exception(active_master_helper.POSTMASTER_OPTS_MISSING.format(params.hawq_master_data_dir))
+  return active_master_helper.identify_active_master()
+
+def execute_start_command(env=None):
+  import params
+  dfs_allow_truncate = check_truncate_setting()
+  if is_truncate_exception_required(dfs_allow_truncate):
+    raise Exception(DFS_ALLOW_TRUNCATE_ERROR_MESSAGE)
+  set_security()
+  command = "source /usr/local/hawq/greenplum_path.sh; gpstart -a -d {0}/gpseg-1".format(params.hawq_master_dir)
+  Execute(command, user=params.hawq_user, timeout=600)
+  if is_truncate_warning_required(dfs_allow_truncate):
     print "**WARNING** " + DFS_ALLOW_TRUNCATE_ERROR_MESSAGE
 
-def master_stop(env=None):
+def stop_hawq(env=None):
+  """
+  Case 1: If database is running, gpsyncmaster process LISTENS on hawq master port on standby
+  [root@hdm1 ~]# netstat -tupln | egrep 5432
+  tcp        0      0 0.0.0.0:5432                0.0.0.0:*                   LISTEN      279699/gpsyncmaster
+  tcp        0      0 :::5432                     :::*                        LISTEN      279699/gpsyncmaster
+
+  Case 2: If database is running, postgres process LISTENS on hawq master port on active master
+  [root@hdw3 ~]# netstat -tupln | egrep 5432
+  tcp        0      0 0.0.0.0:5432                0.0.0.0:*                   LISTEN      380366/postgres
+  tcp        0      0 :::5432                     :::*                        LISTEN      380366/postgres
+
+  Based on the process (gpsyncagent vs postgres) we can identify the active master and execute stop operation on it.
+  """
   import params
   command = "source /usr/local/hawq/greenplum_path.sh; gpstop -af -d {0}/gpseg-1".format(params.hawq_master_dir)
-  # If postgres process is running on hawq master port, gpstop should be executed otherwise it should be skipped. Note: {0}\s captures processes running on port 5432 and not on 5432[0-9]
+  # Note: {0}\s captures processes running on port 5432 and not on 5432[0-9]
   Execute(command, user=params.hawq_user, timeout=600, only_if="netstat -tupln | egrep ':{0}\s' | egrep postgres".format(params.hawq_master_port))
 
 def metrics_start(env=None):

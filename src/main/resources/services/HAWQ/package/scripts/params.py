@@ -5,7 +5,6 @@ config = Script.get_config()
 
 hdfs_supergroup = config["configurations"]["hdfs-site"]["dfs.permissions.superusergroup"]
 user_group      = "hadoop"
-
 hawq_standby = None
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
@@ -50,9 +49,10 @@ if config["commandType"] == 'EXECUTION_COMMAND':
     _realm_name = config['configurations']['cluster-env']['kerberos_domain']
     _hdfs_headless_princpal_name_with_realm = _hdfs_headless_principal_name + '@' + _realm_name
 
-  if "hawqstandby_hosts" in config["clusterHostInfo"]: # existsance of the key should be explicitly checked. Otherwise, (like 'if config["clusterHostInfo"]["hawqstandby_hosts"]:') throws an error from config_dictionary.py's UnknownConfiguration class
+  if "hawqstandby_hosts" in config["clusterHostInfo"]: # existence of the key should be explicitly checked. Otherwise, (like 'if config["clusterHostInfo"]["hawqstandby_hosts"]:') throws an error from config_dictionary.py's UnknownConfiguration class
     if len(config["clusterHostInfo"]["hawqstandby_hosts"]) > 0:
       hawq_standby = config["clusterHostInfo"]["hawqstandby_hosts"][0]
+  hawq_master = config["clusterHostInfo"]["hawqmaster_hosts"][0]
 
   hawq_password = "gpadmin"
   hawq_cluster_name = "hawq"
@@ -62,6 +62,8 @@ if config["commandType"] == 'EXECUTION_COMMAND':
   hawq_keytab_file = "/etc/security/keytabs/hawq.service.keytab"
   set_os_parameters = False
   skip_preinstall_verification = True
+  seg_prefix = "gpseg"
+  hostname = config['hostname']
 
   hawq_site_config = config["configurations"].get("hawq-site")
   if hawq_site_config:
@@ -102,3 +104,5 @@ if config["commandType"] == 'EXECUTION_COMMAND':
       sysctl_vm_overcommit_memory = hawq_site_config.get("sysctl.vm.overcommit_memory").strip()
 
   segments_per_node = len(hawq_data_dir.split())
+  hawq_master_data_dir = os.path.join(hawq_master_dir, seg_prefix + "-1")
+  postmaster_opts_filepath = os.path.join(hawq_master_data_dir, "postmaster.opts")
