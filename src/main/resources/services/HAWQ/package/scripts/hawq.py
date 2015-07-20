@@ -367,13 +367,13 @@ def set_security():
 
 def start_hawq(env=None):
   import params
-  if not is_hawq_initialized():
+  if is_hawq_initialized():
+    start_if_active_hawq_master(env=None)
+  else:
     if params.hostname == params.hawq_master:
       init_hawq(env=None) # Init will start the database as well, so skip starting again
     elif params.hostname == params.hawq_standby:
       Logger.info("Database initialization using gpinitsystem has been triggered on host {0}, please wait for its completion.".format(params.hawq_master))
-  else:
-    start_if_active_hawq_master(env=None)
 
 def is_hawq_initialized():
   import params
@@ -403,7 +403,7 @@ def start_if_active_hawq_master(env=None):
   active_master_host = get_active_master_host()
   # If active master hostname is the current local host, execute start command. 
   # In single node installation, localhost will always be the active
-  if active_master_host == params.hostname
+  if active_master_host == params.hostname:
     return execute_start_command(env=None)
   # If active master hostname is not the current local host but in the list of masters, it will be the standby master
   if active_master_host in [params.hawq_standby, params.hawq_master]:
