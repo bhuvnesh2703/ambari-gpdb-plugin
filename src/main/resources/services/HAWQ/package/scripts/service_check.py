@@ -17,8 +17,8 @@ class HAWQServiceCheck(Script):
     import params
     self.active_master_host = hawq.get_active_master_host()
     configured_hosts = [params.hawq_master]
-      if params.hawq_standby is not None:
-        configured_hosts.append(params.hawq_standby)
+    if params.hawq_standby is not None:
+      configured_hosts.append(params.hawq_standby)
     if self.active_master_host not in configured_hosts:
       raise Exception("Host {0} not in the list of configured hosts {1}.".format(self.active_master_host, " and ".join(configured_hosts)))
 
