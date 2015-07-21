@@ -13,17 +13,15 @@ import custom_params
 
 DFS_ALLOW_TRUNCATE_ERROR_MESSAGE = "dfs.allow.truncate property in hdfs-site.xml file should be set to True. Please review HAWQ installation guide for more information."
 
-def verify_segments_state(env):
+def verify_segments_state(env, active_master_host):
   import params
   env.set_params(params)
-  command = "su - {0} -c 'source /usr/local/hawq/greenplum_path.sh; gpstate -t -d {1}/gpseg-1'".format(params.hawq_user, params.hawq_master_dir)
-  remote_hostname = None
-  if not os.path.exists(params.hawq_master_dir):
-    remote_hostname = params.hawq_master
-  (retcode, out, err) = subprocess_command_with_results(command, remote_hostname)
-  print (retcode, out, err)
+  command = "source /usr/local/hawq/greenplum_path.sh; gpstate -t -d {0}/gpseg-1".format(params.hawq_master_dir)
+  (retcode, out, err) = subprocess_command_with_results(params.hawq_user, command, active_master_host)
   if retcode:
     raise Exception("gpstate command returned non-zero result: {0}. Out: {1} Error: {2}".format(retcode, out, err))
+
+  Logger.info("Service check results:\nOutput of gpstate -t -d {0}\n".format(params.hawq_master_data_dir) + str(out) + "\n")
 
   if [status_line for status_line in out.split('\n') if (status_line.startswith('gpseg') and status_line.split(" ")[1 ] == 'd')]:
     raise Exception("Service check detected that some of the HAWQ segments are down. run 'gpstate -t' on master for more info")

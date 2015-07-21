@@ -5,19 +5,24 @@ import hawq
 class HAWQServiceCheck(Script):
   sql_command = None
   sql_noheader_command = None
-  remote_hostname = None
   temp_table_name = "ambari_smoke_t1"
   test_user = "gpadmin"
 
   def __init__(self):
-    self.sql_command = "su - " + self.test_user + " -c \\\"source /usr/local/hawq/greenplum_path.sh && psql -c '{0};'\\\""
-    self.sql_noheader_command = "su - " + self.test_user + " -c \\\"source /usr/local/hawq/greenplum_path.sh && psql -t -c '{0};'\\\""
+    self.sql_command = "source /usr/local/hawq/greenplum_path.sh && psql -c \\\"{0};\\\""
+    self.sql_noheader_command = "source /usr/local/hawq/greenplum_path.sh && psql -t -c \\\"{0};\\\""
+    self.active_master_host = None
 
   def service_check(self, env):
-    hawq.verify_segments_state(env)
-
     import params
-    self.remote_hostname = params.hawq_master
+    self.active_master_host = hawq.get_active_master_host()
+    configured_hosts = [params.hawq_master]
+    if params.hawq_standby is not None:
+      configured_hosts.append(params.hawq_standby)
+    if self.active_master_host not in configured_hosts:
+      raise Exception("Host {0} not in the list of configured hosts {1}. Please execute service checks from the hawq active master manually.".format(self.active_master_host, " and ".join(configured_hosts)))
+
+    hawq.verify_segments_state(env, self.active_master_host)
 
     self.drop_table()
     try:
@@ -34,7 +39,7 @@ class HAWQServiceCheck(Script):
   def drop_table(self):
     print "Testing Drop Table"
     command = self.sql_command.format("drop table if exists " + self.temp_table_name)
-    (retcode, out, err) = subprocess_command_with_results(command, self.remote_hostname)
+    (retcode, out, err) = subprocess_command_with_results(self.test_user, command, self.active_master_host)
     if retcode:
       raise Exception("HAWQ Smoke Tests Failed. Return Code: {0}. Out: {1} Error: {2}".format(retcode, out, err))
     print out
@@ -43,7 +48,7 @@ class HAWQServiceCheck(Script):
   def create_table(self):
     print "Testing Create Table"
     command = self.sql_command.format("create table " + self.temp_table_name + "(a int)")
-    (retcode, out, err) = subprocess_command_with_results(command, self.remote_hostname)
+    (retcode, out, err) = subprocess_command_with_results(self.test_user, command, self.active_master_host)
     if retcode:
       raise Exception("HAWQ Smoke Tests Failed. Return Code: {0}. Out: {1} Error: {2}".format(retcode, out, err))
     print out
@@ -52,7 +57,7 @@ class HAWQServiceCheck(Script):
   def insert_data(self):
     print "Testing Insert Data"
     command = self.sql_command.format("insert into " + self.temp_table_name + " select * from generate_series(1,10)")
-    (retcode, out, err) = subprocess_command_with_results(command, self.remote_hostname)
+    (retcode, out, err) = subprocess_command_with_results(self.test_user, command, self.active_master_host)
     if retcode:
       raise Exception("HAWQ Smoke Tests Failed. Return Code: {0}. Out: {1} Error: {2}".format(retcode, out, err))
     print out
@@ -61,7 +66,7 @@ class HAWQServiceCheck(Script):
   def query_data(self):
     print "Testing Querying Data"
     command = self.sql_command.format("select * from " + self.temp_table_name)
-    (retcode, out, err) = subprocess_command_with_results(command, self.remote_hostname)
+    (retcode, out, err) = subprocess_command_with_results(self.test_user, command, self.active_master_host)
     if retcode:
       raise Exception("HAWQ Smoke Tests Failed. Return Code: {0}. Out: {1} Error: {2}".format(retcode, out, err))
     print out
@@ -71,7 +76,7 @@ class HAWQServiceCheck(Script):
     expected_data = "55"
     print "Testing Correctness of Data. Finding sum of all the inserted entries. Expected output: " + expected_data
     command = self.sql_noheader_command.format("select sum(a) from " + self.temp_table_name)
-    (retcode, out, err) = subprocess_command_with_results(command, self.remote_hostname)
+    (retcode, out, err) = subprocess_command_with_results(self.test_user, command, self.active_master_host)
     if retcode:
       raise Exception("HAWQ Smoke Tests Failed. Return Code: {0}. Out: {1} Error: {2}".format(retcode, out, err))
     if expected_data != out.strip():

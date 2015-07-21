@@ -9,8 +9,9 @@ BOTH_MASTER_HAS_STANDBY_CONTENT = "Unable to identify active hawq master. Conten
 MASTER_STARTED_IN_UTILITY_MODE = "{0}/postmaster.opts contents indicate that database was started in utility mode previously, due to which active master cannot be identified with certainty.\nPlease start the database in normal mode from active hawq master manually from command line for now to fix it." + HAWQ_START_HELP
 
 def get_last_modified_time(hostname, filepath):
+  import params
   cmd = "stat -c %Y {0}".format(filepath)
-  returncode, stdoutdata, stderrdata = subprocess_command_with_results(cmd, hostname)
+  _, stdoutdata, _ = subprocess_command_with_results(params.hawq_user, cmd, hostname)
   return stdoutdata
 
 def get_standby_dbid(hostname, filepath):
@@ -24,8 +25,9 @@ def get_standby_dbid(hostname, filepath):
   return postmaster_opt_content[postmaster_opt_content.index('"-x"') + 1]
 
 def read_file(hostname, filename):
+  import params
   cmd = "cat {0}".format(filename)
-  returncode, stdoutdata, stderrdata = subprocess_command_with_results(cmd, hostname)
+  _, stdoutdata, _ = subprocess_command_with_results(params.hawq_user, cmd, hostname)
   return stdoutdata
     
 def convert_postmaster_content_to_list(hostname, postmasters_opts_file):
@@ -36,8 +38,9 @@ def is_postmaster_opts_missing_on_master_hosts():
   return is_file_missing(params.hawq_master, params.postmaster_opts_filepath) or is_file_missing(params.hawq_standby, params.postmaster_opts_filepath)
 
 def is_file_missing(hostname, filename):
+  import params
   cmd = "[ -f {0} ]".format(filename)
-  returncode, stdoutdata, stderrdata = subprocess_command_with_results(cmd, hostname)
+  returncode, _, _ = subprocess_command_with_results(params.hawq_user, cmd, hostname)
   return not(returncode == 0)
 
 def is_datadir_existing_on_master_hosts():
@@ -45,8 +48,9 @@ def is_datadir_existing_on_master_hosts():
   return is_dir_existing(params.hawq_master, params.hawq_master_data_dir) or is_dir_existing(params.hawq_standby, params.hawq_master_data_dir)
 
 def is_dir_existing(hostname, datadir):
+  import params
   cmd = "[ -d {0} ]".format(datadir)
-  returncode, stdoutdata, stderrdata = subprocess_command_with_results(cmd, hostname)
+  returncode, _, _ = subprocess_command_with_results(params.hawq_user, cmd, hostname)
   return returncode == 0
 
 def identify_active_master():
