@@ -11,7 +11,7 @@ MASTER_STARTED_IN_UTILITY_MODE = "{0}/postmaster.opts contents indicate that dat
 def get_last_modified_time(hostname, filepath):
   import params
   cmd = "stat -c %Y {0}".format(filepath)
-  returncode, stdoutdata, stderrdata = subprocess_command_with_results(params.hawq_user, cmd, hostname)
+  _, stdoutdata, _ = subprocess_command_with_results(params.hawq_user, cmd, hostname)
   return stdoutdata
 
 def get_standby_dbid(hostname, filepath):
@@ -27,7 +27,7 @@ def get_standby_dbid(hostname, filepath):
 def read_file(hostname, filename):
   import params
   cmd = "cat {0}".format(filename)
-  returncode, stdoutdata, stderrdata = subprocess_command_with_results(params.hawq_user, cmd, hostname)
+  _, stdoutdata, _ = subprocess_command_with_results(params.hawq_user, cmd, hostname)
   return stdoutdata
     
 def convert_postmaster_content_to_list(hostname, postmasters_opts_file):
@@ -40,7 +40,7 @@ def is_postmaster_opts_missing_on_master_hosts():
 def is_file_missing(hostname, filename):
   import params
   cmd = "[ -f {0} ]".format(filename)
-  returncode, stdoutdata, stderrdata = subprocess_command_with_results(params.hawq_user, cmd, hostname)
+  returncode, _, _ = subprocess_command_with_results(params.hawq_user, cmd, hostname)
   return not(returncode == 0)
 
 def is_datadir_existing_on_master_hosts():
@@ -50,7 +50,7 @@ def is_datadir_existing_on_master_hosts():
 def is_dir_existing(hostname, datadir):
   import params
   cmd = "[ -d {0} ]".format(datadir)
-  returncode, stdoutdata, stderrdata = subprocess_command_with_results(params.hawq_user, cmd, hostname)
+  returncode, _, _ = subprocess_command_with_results(params.hawq_user, cmd, hostname)
   return returncode == 0
 
 def identify_active_master():
