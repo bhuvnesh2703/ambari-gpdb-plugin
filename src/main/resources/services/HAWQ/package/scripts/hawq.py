@@ -378,7 +378,7 @@ def start_hawq(env=None):
   if is_hawq_initialized():
     execute_start_command(env=None)
   else:
-    init_hawq(env=None)
+    init_hawq(env=None) # Init will start the database as well
 
 def is_hawq_initialized():
   import params
