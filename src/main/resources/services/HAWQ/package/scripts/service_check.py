@@ -1,6 +1,7 @@
 from resource_management import *
 from common import subprocess_command_with_results
 import hawq
+import active_master_helper
 
 class HAWQServiceCheck(Script):
   sql_command = None
