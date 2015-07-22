@@ -67,16 +67,6 @@ class Verifications:
             message += " - System value: %.2fGB" % (actual/1024.0/1024.0)
             self.messages.append(message)
 
-    def check_port_conflicts(self):
-        import params
-        import subprocess
-        command = "netstat -tulpn | grep ':{0}\\b'".format(params.hawq_master_port)
-        (r,o) = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True).communicate()
-        if (len(r)):
-            # we have a conflict with the hawq master port.
-            message = "Conflict with HAWQ Master port. Either the service is already running or some other service is using port: {0}".format(params.hawq_master_port)
-            self.messages.append(message)
-
     def check_segment_count(self):
         import params
         required = self.requirements.get("max_segments_per_node").get("value")
