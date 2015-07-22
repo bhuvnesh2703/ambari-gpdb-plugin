@@ -7,7 +7,6 @@ class Verifications:
     def mandatory_checks(self, component):
         self.check_hawq_user()
         if component == "master":
-            self.check_port_conflicts()
             self.check_segment_count()
         if component == "segment":
             pass

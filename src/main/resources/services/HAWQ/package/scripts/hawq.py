@@ -26,6 +26,16 @@ def verify_segments_state(env, active_master_host):
   if [status_line for status_line in out.split('\n') if (status_line.startswith('gpseg') and status_line.split(" ")[1 ] == 'd')]:
     raise Exception("Service check detected that some of the HAWQ segments are down. run 'gpstate -t' on master for more info")
 
+def check_port_conflict():
+  import params
+  import subprocess
+  command = "netstat -tulpn | grep ':{0}\\b'".format(params.hawq_master_port)
+  (r,o) = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True).communicate()
+    if (len(r)):
+    # we have a conflict with the hawq master port.
+    message = "Conflict with HAWQ Master port. Either the service is already running or some other service is using port: {0}.\nProcess running on master port:\n{1}".format(params.hawq_master_port, r)
+    raise Exception(message)
+
 def hawq_user_exists():
   import params
   try:
