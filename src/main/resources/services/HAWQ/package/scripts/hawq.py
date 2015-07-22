@@ -393,15 +393,6 @@ def check_truncate_setting():
 def is_truncate_warning_required(dfs_allow_truncate):
   return (not dfs_allow_truncate and not custom_params.enforce_hdfs_truncate)
 
-def get_active_master_host():
-  import params
-  if params.hawq_standby is None or not is_hawq_initialized():
-    return params.hawq_master #In single node installation, hawq_master will always be the master
-  # If cluster is configured with master and standby, ensure that postmaster.opts file is available
-  if active_master_helper.is_postmaster_opts_missing_on_master_hosts():
-    raise Exception(active_master_helper.POSTMASTER_OPTS_MISSING.format(params.hawq_master_data_dir))
-  return active_master_helper.identify_active_master()
-
 def execute_start_command(env=None):
   import params
   dfs_allow_truncate = check_truncate_setting()
