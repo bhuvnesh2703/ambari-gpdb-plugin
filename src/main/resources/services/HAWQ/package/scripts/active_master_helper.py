@@ -111,7 +111,7 @@ def is_localhost_active_master():
   import params
   active_master_host = get_active_master_host()
   if active_master_host not in params.master_hosts:
-    raise Exception("Host {0} not in the list of configured master hosts {1}".format(" and ".join(params.master_hosts)))
+    raise Exception("Host {0} not in the list of configured master hosts {1}. Please execute the requested operation from active hawq master manually".format(" and ".join(params.master_hosts)))
   if active_master_host == params.hostname:
     return True
   return False
