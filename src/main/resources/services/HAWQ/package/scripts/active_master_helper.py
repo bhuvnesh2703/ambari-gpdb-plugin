@@ -105,3 +105,21 @@ def identify_active_master_by_timestamp(hostname):
     return params.hawq_master
   elif  master_postmaster_mtime < standby_postmaster_mtime and standby_dbid_on_standby == '"0"' and standby_dbid_on_master !='"0"':
     return params.hawq_standby
+
+def is_localhost_active_master():
+  import params
+  active_master_host = get_active_master_host()
+  if active_master_host not in params.master_hosts:
+    raise Exception("Host {0} not in the list of configured master hosts {1}".format(" and ".join(params.master_hosts)))
+  if active_master_host == params.hostname:
+    return True
+  return False
+
+def get_active_master_host():
+  import params
+  if params.hawq_standby is None or not is_hawq_initialized():
+    return params.hawq_master #In single node installation, hawq_master will always be the master
+  # If cluster is configured with master and standby, ensure that postmaster.opts file is available
+  if active_master_helper.is_postmaster_opts_missing_on_master_hosts():
+    raise Exception(active_master_helper.POSTMASTER_OPTS_MISSING.format(params.hawq_master_data_dir))
+  return active_master_helper.identify_active_master()

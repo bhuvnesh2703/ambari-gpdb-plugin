@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from resource_management import *
 import hawq
+import active_master_helper
 
 class HawqMaster(Script):
   def install(self, env):
@@ -13,20 +14,11 @@ class HawqMaster(Script):
     hawq.common_setup(env)
     hawq.master_configure(env)
 
-  def is_localhost_active_master(self):
-    import params
-    active_master_host = hawq.get_active_master_host()
-    if active_master_host not in params.master_hosts:
-      raise Exception("Host {0} not in the list of configured master hosts {1}".format(" and ".join(params.master_hosts)))
-    if active_master_host == params.hostname:
-      return True
-    return False
-  
   def start(self, env):
     self.configure(env)
-    if self.is_localhost_active_master():
+    if active_master_helper.is_localhost_active_master():
       hawq.system_verification(env, "master")
-      hawq.start_hawq()
+      hawq.start_hawq(env)
     else:
       Logger.info("This host is not the active master, skipping requested operation.")
 
