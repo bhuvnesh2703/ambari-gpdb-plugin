@@ -12,11 +12,23 @@ class HawqMaster(Script):
     env.set_params(params)
     hawq.common_setup(env)
     hawq.master_configure(env)
-    hawq.system_verification(env, "master")
 
+  def is_localhost_active_master(self):
+    import params
+    active_master_host = hawq.get_active_master_host()
+    if active_master_host not in params.master_hosts:
+      raise Exception("Host {0} not in the list of configured master hosts {1}".format(" and ".join(params.master_hosts)))
+    if active_master_host == params.hostname:
+      return True
+    return False
+  
   def start(self, env):
     self.configure(env)
-    hawq.start_hawq(env)
+    if self.is_localhost_active_master():
+      hawq.system_verification(env, "master")
+      hawq.start_hawq()
+    else:
+      Logger.info("This host is not the active master, skipping requested operation.")
 
   def stop(self, env):
     hawq.stop_hawq(env)
