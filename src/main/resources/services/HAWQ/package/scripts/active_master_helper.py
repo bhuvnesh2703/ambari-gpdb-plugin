@@ -107,6 +107,7 @@ def identify_active_master_by_timestamp(hostname):
     return params.hawq_standby
 
 def is_localhost_active_master():
+  # Identify if localhost is the active master
   import params
   active_master_host = get_active_master_host()
   if active_master_host not in params.master_hosts:
@@ -116,10 +117,20 @@ def is_localhost_active_master():
   return False
 
 def get_active_master_host():
+  """
+  1. hawq_master will always be the active master in hawq cluster without
+  standby.
+
+  2. If cluster is configured with hawq master & standby, but master data
+  directory does not exists on both the hosts, it suggests that hawq database
+  is not initialized & cluster must be initialized with hawq_master as the
+  active master.
+  """
+
   import params
   if params.hawq_standby is None or not is_datadir_existing_on_master_hosts():
-    return params.hawq_master #In single node installation, hawq_master will always be the master
-  # If cluster is configured with master and standby, ensure that postmaster.opts file is available
+    return params.hawq_master
+  # If cluster has master and standby, ensure postmaster.opts exists
   if is_postmaster_opts_missing_on_master_hosts():
     raise Exception(POSTMASTER_OPTS_MISSING.format(params.hawq_master_data_dir))
   return identify_active_master()
