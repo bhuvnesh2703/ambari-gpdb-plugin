@@ -110,8 +110,6 @@ def is_localhost_active_master():
   # Identify if localhost is the active master
   import params
   active_master_host = get_active_master_host()
-  if active_master_host not in params.master_hosts:
-    raise Exception("Host {0} not in the list of configured master hosts {1}. Please execute the requested operation from active hawq master manually".format(" and ".join(params.master_hosts)))
   if active_master_host == params.hostname:
     return True
   return False
@@ -128,9 +126,14 @@ def get_active_master_host():
   """
 
   import params
+  active_master_host = None
   if params.hawq_standby is None or not is_datadir_existing_on_master_hosts():
-    return params.hawq_master
+    active_master_host = params.hawq_master
   # If cluster has master and standby, ensure postmaster.opts exists
-  if is_postmaster_opts_missing_on_master_hosts():
+  elif is_postmaster_opts_missing_on_master_hosts():
     raise Exception(POSTMASTER_OPTS_MISSING.format(params.hawq_master_data_dir))
-  return identify_active_master()
+  else:
+    active_master_host = identify_active_master()
+  if active_master_host not in params.master_hosts:
+    raise Exception("Host {0} not in the list of configured master hosts {1}. Please execute the requested operation from active hawq master manually".format(active_master_host, " and ".join(params.master_hosts)))
+  return active_master_host

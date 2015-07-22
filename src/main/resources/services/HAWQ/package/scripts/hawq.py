@@ -374,11 +374,15 @@ def set_security():
   Execute(command, user=params.hdfs_superuser, timeout=600)
 
 def start_hawq(env=None):
-  import params
-  if is_hawq_initialized():
-    execute_start_command(env=None)
+  if is_localhost_active_master():
+    check_port_conflict() # Proceed only if there is no port conflict
+    import params
+    if is_hawq_initialized():
+      execute_start_command(env=None)
+    else:
+      init_hawq(env=None) # Init will start the database as well
   else:
-    init_hawq(env=None) # Init will start the database as well
+    Logger.info("This host is not the active master, skipping requested operation.")
 
 def is_hawq_initialized():
   import params

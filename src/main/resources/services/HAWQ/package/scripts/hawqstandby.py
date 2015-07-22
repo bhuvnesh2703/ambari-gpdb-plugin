@@ -17,15 +17,7 @@ class HawqStandby(Script):
 
   def start(self, env):
     self.configure(env)
-    # Identify active hawq master
-    if active_master_helper.is_localhost_active_master():
-      # Execute master port check to identify port conflicts
-      hawq.check_port_conflict()
-      # Execute hawq start
-      hawq.start_hawq(env)
-    else:
-      # Ignore port check for standby as it will lead to port conflicting issues during restart
-      Logger.info("This host is not the active master, skipping requested operation.")
+    hawq.start_hawq(env)
 
   def stop(self, env):
     hawq.stop_hawq(env)
