@@ -374,7 +374,7 @@ def set_security():
   Execute(command, user=params.hdfs_superuser, timeout=600)
 
 def start_hawq(env=None):
-  if is_localhost_active_master():
+  if active_master_helper.is_localhost_active_master():
     check_port_conflict() # Proceed only if there is no port conflict
     import params
     if is_hawq_initialized():
