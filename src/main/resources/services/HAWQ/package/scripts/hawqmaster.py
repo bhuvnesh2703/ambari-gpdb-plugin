@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from resource_management import *
 import hawq
-import active_master_helper
 
 class HawqMaster(Script):
   def install(self, env):
