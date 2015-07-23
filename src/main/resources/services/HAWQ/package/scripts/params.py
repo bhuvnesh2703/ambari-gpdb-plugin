@@ -106,3 +106,6 @@ if config["commandType"] == 'EXECUTION_COMMAND':
   segments_per_node = len(hawq_data_dir.split())
   hawq_master_data_dir = os.path.join(hawq_master_dir, seg_prefix + "-1")
   postmaster_opts_filepath = os.path.join(hawq_master_data_dir, "postmaster.opts")
+  master_hosts = [hawq_master]
+  if hawq_standby is not None:
+    master_hosts.append(hawq_standby)

@@ -7,7 +7,6 @@ class Verifications:
     def mandatory_checks(self, component):
         self.check_hawq_user()
         if component == "master":
-            self.check_port_conflicts()
             self.check_segment_count()
         if component == "segment":
             pass
@@ -66,16 +65,6 @@ class Verifications:
         if actual < required:
             message = self.requirements.get("minimum_disk").get("message")
             message += " - System value: %.2fGB" % (actual/1024.0/1024.0)
-            self.messages.append(message)
-
-    def check_port_conflicts(self):
-        import params
-        import subprocess
-        command = "netstat -tulpn | grep ':{0}\\b'".format(params.hawq_master_port)
-        (r,o) = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True).communicate()
-        if (len(r)):
-            # we have a conflict with the hawq master port.
-            message = "Conflict with HAWQ Master port. Either the service is already running or some other service is using port: {0}".format(params.hawq_master_port)
             self.messages.append(message)
 
     def check_segment_count(self):

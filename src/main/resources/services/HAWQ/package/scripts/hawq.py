@@ -26,6 +26,16 @@ def verify_segments_state(env, active_master_host):
   if [status_line for status_line in out.split('\n') if (status_line.startswith('gpseg') and status_line.split(" ")[1 ] == 'd')]:
     raise Exception("Service check detected that some of the HAWQ segments are down. run 'gpstate -t' on master for more info")
 
+def check_port_conflict():
+  import params
+  import subprocess
+  command = "netstat -tulpn | grep ':{0}\\b'".format(params.hawq_master_port)
+  (r,o) = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True).communicate()
+  if (len(r)):
+    # we have a conflict with the hawq master port.
+    message = "Conflict with HAWQ Master port. Either the service is already running or some other service is using port: {0}.\nProcess running on master port:\n{1}".format(params.hawq_master_port, r)
+    raise Exception(message)
+
 def hawq_user_exists():
   import params
   try:
@@ -364,14 +374,15 @@ def set_security():
   Execute(command, user=params.hdfs_superuser, timeout=600)
 
 def start_hawq(env=None):
-  import params
-  if is_hawq_initialized():
-    start_if_active_hawq_master(env=None)
+  if active_master_helper.is_localhost_active_master():
+    check_port_conflict() # Proceed only if there is no port conflict
+    import params
+    if is_hawq_initialized():
+      execute_start_command(env=None)
+    else:
+      init_hawq(env=None) # Init will start the database as well
   else:
-    if params.hostname == params.hawq_master:
-      init_hawq(env=None) # Init will start the database as well, so skip starting again
-    elif params.hostname == params.hawq_standby:
-      Logger.info("Database initialization using gpinitsystem has been triggered on host {0}, please wait for its completion.".format(params.hawq_master))
+    Logger.info("This host is not the active master, skipping requested operation.")
 
 def is_hawq_initialized():
   import params
@@ -395,31 +406,6 @@ def check_truncate_setting():
 
 def is_truncate_warning_required(dfs_allow_truncate):
   return (not dfs_allow_truncate and not custom_params.enforce_hdfs_truncate)
-
-def start_if_active_hawq_master(env=None):
-  import params
-  active_master_host = get_active_master_host()
-  # If active master hostname is the current local host, execute start command. 
-  # In single node installation, localhost will always be the active
-  if active_master_host == params.hostname:
-    return execute_start_command(env=None)
-  # If active master hostname is not the current local host but in the list of masters, it will be the standby master
-  if active_master_host in [params.hawq_standby, params.hawq_master]:
-    return Logger.info("This host is not the active master, skipping requested operation.")
-  # If control reaches here, it indicates that the host name returned by active master host call is not in the list of configured hawq master and standby hostname. Raise an exception to report it
-  configured_hosts = [params.hawq_master]
-  if params.hawq_standby is not None:
-    configured_hosts.append(params.hawq_standby)
-  raise Exception("Host {0} is not in the configured master hosts {1}.".format(active_master_host, " and ".join(configured_hosts)))
-
-def get_active_master_host():
-  import params
-  if params.hawq_standby is None:
-    return params.hawq_master #In single node installation, hawq_master will always be the master
-  # If cluster is configured with master and standby, ensure that postmaster.opts file is available
-  if active_master_helper.is_postmaster_opts_missing_on_master_hosts():
-    raise Exception(active_master_helper.POSTMASTER_OPTS_MISSING.format(params.hawq_master_data_dir))
-  return active_master_helper.identify_active_master()
 
 def execute_start_command(env=None):
   import params

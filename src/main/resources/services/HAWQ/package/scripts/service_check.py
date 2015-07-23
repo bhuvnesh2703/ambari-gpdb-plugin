@@ -1,6 +1,7 @@
 from resource_management import *
 from common import subprocess_command_with_results
 import hawq
+import active_master_helper
 
 class HAWQServiceCheck(Script):
   sql_command = None
@@ -15,12 +16,7 @@ class HAWQServiceCheck(Script):
 
   def service_check(self, env):
     import params
-    self.active_master_host = hawq.get_active_master_host()
-    configured_hosts = [params.hawq_master]
-    if params.hawq_standby is not None:
-      configured_hosts.append(params.hawq_standby)
-    if self.active_master_host not in configured_hosts:
-      raise Exception("Host {0} not in the list of configured hosts {1}. Please execute service checks from the hawq active master manually.".format(self.active_master_host, " and ".join(configured_hosts)))
+    self.active_master_host = active_master_helper.get_active_master_host()
 
     hawq.verify_segments_state(env, self.active_master_host)
 
