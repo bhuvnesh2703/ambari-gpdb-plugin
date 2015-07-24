@@ -1,5 +1,5 @@
 from resource_management import *
-from common import subprocess_command_with_results
+from common import subprocess_command_with_results, print_to_stderr_and_exit
 import os
 
 HAWQ_START_HELP = "\nSteps to start hawq database from active hawq master:\nLogin as gpadmin user: su - gpadmin\nSource greenplum_path.sh: source /usr/local/hawq/greenplum_path.sh\nStart database: gpstart -a -d {0}."
@@ -76,7 +76,7 @@ def identify_active_master():
   master_postmaster_opts_content = convert_postmaster_content_to_list(params.hawq_master, params.postmaster_opts_filepath)
   standby_postmaster_opts_content = convert_postmaster_content_to_list(params.hawq_standby, params.postmaster_opts_filepath)
   if '"gp_role=utility"' in master_postmaster_opts_content or '"gp_role=utility"' in standby_postmaster_opts_content:
-    raise Exception(MASTER_STARTED_IN_UTILITY_MODE.format(params.hawq_master_data_dir))
+    print_to_stderr_and_exit(MASTER_STARTED_IN_UTILITY_MODE.format(params.hawq_master_data_dir))
   _x_in_master_contents = '"-x"' in master_postmaster_opts_content
   _x_in_standby_contents = '"-x"' in standby_postmaster_opts_content
   if _x_in_master_contents and not _x_in_standby_contents:
@@ -89,8 +89,8 @@ def identify_active_master():
   If control reaches here, it indicates that an active master cannot be identified. Return appropriate failure message
   """
   if not _x_in_master_contents and not _x_in_standby_contents:
-    raise Exception(BOTH_MASTER_HAS_STANDBY_CONTENT.format(params.hawq_master_data_dir))
-  raise Exception(UNABLE_TO_IDENTIFY_ACTIVE_MASTER.format(params.hawq_master_data_dir))
+    print_to_stderr_and_exit(BOTH_MASTER_HAS_STANDBY_CONTENT.format(params.hawq_master_data_dir))
+  print_to_stderr_and_exit(UNABLE_TO_IDENTIFY_ACTIVE_MASTER.format(params.hawq_master_data_dir))
 
 def identify_active_master_by_timestamp(hostname):
   """
@@ -129,9 +129,9 @@ def get_active_master_host():
     active_master_host = params.hawq_master
   # If cluster has master and standby, ensure postmaster.opts exists
   elif is_postmaster_opts_missing_on_master_hosts():
-    raise Exception(POSTMASTER_OPTS_MISSING.format(params.hawq_master_data_dir))
+    print_to_stderr_and_exit(POSTMASTER_OPTS_MISSING.format(params.hawq_master_data_dir))
   else:
     active_master_host = identify_active_master()
   if active_master_host not in params.master_hosts:
-    raise Exception("Host {0} not in the list of configured master hosts {1}. Please execute the requested operation from active hawq master manually".format(active_master_host, " and ".join(params.master_hosts)))
+    print_to_stderr_and_exit("Host {0} not in the list of configured master hosts {1}. Please execute the requested operation from active hawq master manually".format(active_master_host, " and ".join(params.master_hosts)))
   return active_master_host

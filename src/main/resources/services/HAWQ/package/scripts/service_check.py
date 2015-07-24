@@ -1,5 +1,5 @@
 from resource_management import *
-from common import subprocess_command_with_results
+from common import subprocess_command_with_results, print_to_stderr_and_exit
 import hawq
 import active_master_helper
 
@@ -37,7 +37,7 @@ class HAWQServiceCheck(Script):
     command = self.sql_command.format("drop table if exists " + self.temp_table_name)
     (retcode, out, err) = subprocess_command_with_results(self.test_user, command, self.active_master_host)
     if retcode:
-      raise Exception("HAWQ Smoke Tests Failed. Return Code: {0}. Out: {1} Error: {2}".format(retcode, out, err))
+      print_to_stderr_and_exit("HAWQ Smoke Tests Failed. Return Code: {0}. Out: {1} Error: {2}".format(retcode, out, err))
     print out
 
     
@@ -46,7 +46,7 @@ class HAWQServiceCheck(Script):
     command = self.sql_command.format("create table " + self.temp_table_name + "(a int)")
     (retcode, out, err) = subprocess_command_with_results(self.test_user, command, self.active_master_host)
     if retcode:
-      raise Exception("HAWQ Smoke Tests Failed. Return Code: {0}. Out: {1} Error: {2}".format(retcode, out, err))
+      print_to_stderr_and_exit("HAWQ Smoke Tests Failed. Return Code: {0}. Out: {1} Error: {2}".format(retcode, out, err))
     print out
 
 
@@ -55,7 +55,7 @@ class HAWQServiceCheck(Script):
     command = self.sql_command.format("insert into " + self.temp_table_name + " select * from generate_series(1,10)")
     (retcode, out, err) = subprocess_command_with_results(self.test_user, command, self.active_master_host)
     if retcode:
-      raise Exception("HAWQ Smoke Tests Failed. Return Code: {0}. Out: {1} Error: {2}".format(retcode, out, err))
+      print_to_stderr_and_exit("HAWQ Smoke Tests Failed. Return Code: {0}. Out: {1} Error: {2}".format(retcode, out, err))
     print out
 
 
@@ -64,7 +64,7 @@ class HAWQServiceCheck(Script):
     command = self.sql_command.format("select * from " + self.temp_table_name)
     (retcode, out, err) = subprocess_command_with_results(self.test_user, command, self.active_master_host)
     if retcode:
-      raise Exception("HAWQ Smoke Tests Failed. Return Code: {0}. Out: {1} Error: {2}".format(retcode, out, err))
+      print_to_stderr_and_exit("HAWQ Smoke Tests Failed. Return Code: {0}. Out: {1} Error: {2}".format(retcode, out, err))
     print out
 
 
@@ -74,9 +74,9 @@ class HAWQServiceCheck(Script):
     command = self.sql_noheader_command.format("select sum(a) from " + self.temp_table_name)
     (retcode, out, err) = subprocess_command_with_results(self.test_user, command, self.active_master_host)
     if retcode:
-      raise Exception("HAWQ Smoke Tests Failed. Return Code: {0}. Out: {1} Error: {2}".format(retcode, out, err))
+      print_to_stderr_and_exit("HAWQ Smoke Tests Failed. Return Code: {0}. Out: {1} Error: {2}".format(retcode, out, err))
     if expected_data != out.strip():
-      raise Exception("HAWQ Smoke Tests Failed. Incorrect Data Returned. Expected Data: {0}. Acutal Data: {1} ".format(expected_data, out))
+      print_to_stderr_and_exit("HAWQ Smoke Tests Failed. Incorrect Data Returned. Expected Data: {0}. Acutal Data: {1} ".format(expected_data, out))
     print out
 
 
