@@ -2,6 +2,7 @@ from resource_management import *
 import subprocess
 from common import subprocess_command_with_results, print_to_stderr_and_exit
 import sys
+import active_master_helper
 
 def check_standby_activation_prereq():
   """
@@ -39,7 +40,6 @@ def check_standby_activation_prereq():
   """
   if '"-x"' in postmaster_content and not '"gp_role=utility"' in postmaster_content:
     print_to_stderr_and_exit("Contents of {0} on host {1} indicate that it is not currently acting as standby hawq master.\nActivateStandby from UI can only be run if host {1} is acting as standby hawq master. Please verify if you have already activated it to active hawq master.\nIf host {2} is acting as standby hawq master and needs to be activated, please execute gpactivatestandby manually from command line.".format(params.postmaster_opts_filepath, params.hawq_standby, params.hawq_master) + GPACTIVATESTANDBY_INSTRUCTIONS)
-  print "hello"
 
   """
   If a lock file /tmp/.s.PGSQL.<master_port>.lock is found on hawq_master host, activate standby will fail stating that an active postgres process in running on it.
