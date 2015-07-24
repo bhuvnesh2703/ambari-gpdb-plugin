@@ -38,9 +38,6 @@ def check_standby_activation_prereq():
   /usr/local/hawq-1.3.0.0/bin/postgres "-D" "/data/hawq/master/gpseg-1" "-p" "5433" "-b" "1" "-z" "1" "--silent-mode=true" "-i" "-M" "master" "-C" "-1" "-x" "0" "-c" "gp_role=utility"
   """
   if '"-x"' in postmaster_content and not '"gp_role=utility"' in postmaster_content:
-    """
-    raise Exception("Contents of {0} on host {1} indicate that it is not currently acting as standby hawq master.\nActivateStandby from UI can only be run if host {1} is acting as standby hawq master. Please verify if you have already activated it to active hawq master.\nIf host {2} is acting as standby hawq master and needs to be activated, please execute gpactivatestandby manually from command line.".format(params.postmaster_opts_filepath, params.hawq_standby, params.hawq_master) + GPACTIVATESTANDBY_INSTRUCTIONS )
-    """
     print_to_stderr_and_exit("Contents of {0} on host {1} indicate that it is not currently acting as standby hawq master.\nActivateStandby from UI can only be run if host {1} is acting as standby hawq master. Please verify if you have already activated it to active hawq master.\nIf host {2} is acting as standby hawq master and needs to be activated, please execute gpactivatestandby manually from command line.".format(params.postmaster_opts_filepath, params.hawq_standby, params.hawq_master) + GPACTIVATESTANDBY_INSTRUCTIONS)
   print "hello"
 
