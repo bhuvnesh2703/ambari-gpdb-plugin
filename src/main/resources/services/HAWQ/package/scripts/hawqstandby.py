@@ -28,7 +28,7 @@ class HawqStandby(Script):
   def activatestandby(self, env):
     import params
     env.set_params(params)
-    hawq.try_activate_standby(env)
+    hawq.activate_standby(env)
 
 if __name__ == "__main__":
     HawqStandby().execute()
