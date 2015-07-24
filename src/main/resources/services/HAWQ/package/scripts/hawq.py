@@ -459,12 +459,46 @@ def segment_configure(env=None):
   command = "echo -e {0} > {1}/segments-dir".format("\\\\n".join(params.hawq_data_dir.split()), os.path.expanduser('~' + params.hawq_user))
   Execute(command, user=params.hawq_user, timeout=600)
 
-def try_activate_standby(env):
+
+def check_standby_activation_prereq():
   import params
   if not params.hawq_standby:
     raise Exception("Standby is not configured")
 
-  source = "source /usr/local/hawq/greenplum_path.sh;"
-  cmd = "export MASTER_DATA_DIRECTORY={0}/gpseg-1;gpactivatestandby -a -f -d {0}/gpseg-1".format(params.hawq_master_dir)
-  command = source + cmd
+  # Check if postmaster.opts file exists, it helps to identify if hawq_standby is acting as standby
+  if not os.path.isfile(params.postmaster_opts_filepath):
+    raise Exception("{0} file does not exists on the host {1}, cannot continue with activating standby".format(params.params.postmaster_opts_filepath, params.hostname))
+
+  # Read postmaster.opts file into a list
+  with open(params.postmaster_opts_filepath, "r") as fh:
+    postmaster_content = fh.read().split()
+
+  """
+  Raise exception if postmaster.opts content indicate that this host is not configured as standby
+
+  Case 1. If contents of postmaster.opts has flag "-x", it indicates that it is not configured as a standby. 
+  Example contents of standby postmaster.opts:
+    postgres "-D" "/data/hawq/master/gpseg-1" "-p" "5432" "-b" "12" "-C" "-1" "-z" "10" "-i"
+
+  Case 2. If standby activation was triggered but it failed, content of postmaster.opts will include "-x" flag but with another option "gp_role=utility". In this case, we should allow gpactivatestandby to be executed again
+  /usr/local/hawq-1.3.0.0/bin/postgres "-D" "/data/hawq/master/gpseg-1" "-p" "5433" "-b" "1" "-z" "1" "--silent-mode=true" "-i" "-M" "master" "-C" "-1" "-x" "0" "-c" "gp_role=utility"
+  """
+  if '"-x"' in postmaster_content and not '"gp_role=utility"' in postmaster_content:
+    raise Exception("Contents of {0} on host {1} indicate that it is not currently acting as standby hawq master. ActivateStandby can only be run if host {1} is acting as standby master. Please execute gpactivatestandby manually from command line if standby on host {2} need to be activated".format(params.postmaster_opts_filepath, params.hawq_standby, params.hawq_master))
+
+  """
+  If a lock file /tmp/.s.PGSQL.<master_port>.lock is found on hawq_master host, activate standby will fail stating that an active postgres process in running on it. 
+  Ensure that gpactivatestandby is triggered only if the lock file is not existing. If not checked, gpactivatestandby will be executed and the contents
+  of postmaster.opts will get inconsistent impacting start / stop operation from ambari ui, so avoid such cases.
+  """
+  lock_file_name = "/tmp/.s.PGSQL.{0}.lock".format(params.hawq_master_port)
+  # ssh to the hawq_master and identify if file exists or not
+  if not active_master_helper.is_file_missing(params.hawq_master, lock_file_name):
+    raise Exception("Lock file /tmp/.s.PGSQL.{0}.lock exists on host {1} suggesting that active postgres process is running on it.\nIf hawq master process is running on host {1}, please follow the steps required to orchestrate a manual failover from command line.\nIf hawq master is not running on host {1}, please delete /tmp/.s.PGSQL.{0}, /tmp/.s.PGSQL.{0}.* and {2}/postmaster.pid files on it before retrying activate standby.".format(params.hawq_master_port, params.hawq_master, params.hawq_master_data_dir))
+  
+
+def try_activate_standby(env):
+  import params
+  check_standby_activation_prereq()
+  command = "source /usr/local/hawq/greenplum_path.sh; export MASTER_DATA_DIRECTORY={0}/gpseg-1;gpactivatestandby -a -f -d {0}/gpseg-1".format(params.hawq_master_dir)
   Execute(command, user=params.hawq_user, timeout=600)

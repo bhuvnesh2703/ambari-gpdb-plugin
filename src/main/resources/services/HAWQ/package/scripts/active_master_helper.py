@@ -110,9 +110,7 @@ def is_localhost_active_master():
   # Identify if localhost is the active master
   import params
   active_master_host = get_active_master_host()
-  if active_master_host == params.hostname:
-    return True
-  return False
+  return active_master_host == params.hostname
 
 def get_active_master_host():
   """
