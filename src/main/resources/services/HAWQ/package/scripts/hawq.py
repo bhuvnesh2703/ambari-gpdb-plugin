@@ -467,7 +467,7 @@ def check_standby_activation_prereq():
   # Check if there is postgres process running on master port, if running it indicates that standby has already been activated to active master
   command = "netstat -tupln | egrep ':{0}\s' | egrep postgres".format(params.hawq_master_port)
   process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
-  stdoutdata, stderrdata = process.communicate()
+  _, _ = process.communicate()
   if process.returncode == 0:
     raise Exception("Active hawq master process is already running on host {0}, standby activation is not required.".format(params.hawq_standby)) 
 
