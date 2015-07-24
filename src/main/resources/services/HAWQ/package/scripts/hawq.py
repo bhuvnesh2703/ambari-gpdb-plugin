@@ -20,12 +20,12 @@ def verify_segments_state(env, active_master_host):
   command = "source /usr/local/hawq/greenplum_path.sh; gpstate -t -d {0}/gpseg-1".format(params.hawq_master_dir)
   (retcode, out, err) = subprocess_command_with_results(params.hawq_user, command, active_master_host)
   if retcode:
-    raise Exception("gpstate command returned non-zero result: {0}. Out: {1} Error: {2}".format(retcode, out, err))
+    print_to_stderr_and_exit("gpstate command returned non-zero result: {0}. Out: {1} Error: {2}".format(retcode, out, err))
 
   Logger.info("Service check results:\nOutput of gpstate -t -d {0}\n".format(params.hawq_master_data_dir) + str(out) + "\n")
 
   if [status_line for status_line in out.split('\n') if (status_line.startswith('gpseg') and status_line.split(" ")[1 ] == 'd')]:
-    raise Exception("Service check detected that some of the HAWQ segments are down. run 'gpstate -t' on master for more info")
+    print_to_stderr_and_exit("Service check detected that some of the HAWQ segments are down. run 'gpstate -t' on master for more info")
 
 def check_port_conflict():
   import params
@@ -35,7 +35,7 @@ def check_port_conflict():
   if (len(stdoutdata)):
     # we have a conflict with the hawq master port.
     message = "Conflict with HAWQ Master port. Either the service is already running or some other service is using port: {0}.\nProcess running on master port:\n{1}".format(params.hawq_master_port, stdoutdata)
-    raise Exception(message)
+    print_to_stderr_and_exit(message)
 
 def hawq_user_exists():
   import params
@@ -278,7 +278,7 @@ def init_hawq(env=None):
   import params
   dfs_allow_truncate = check_truncate_setting()
   if is_truncate_exception_required(dfs_allow_truncate):
-    raise Exception(DFS_ALLOW_TRUNCATE_ERROR_MESSAGE)
+    print_to_stderr_and_exit(DFS_ALLOW_TRUNCATE_ERROR_MESSAGE)
   if params.security_enabled:
     kinit = "/usr/bin/kinit -kt {0} {1};".format(params._hdfs_headless_keytab, params._hdfs_headless_princpal_name_with_realm)
     cmd_setup_dir = "hdfs dfs -mkdir -p /user/gpadmin && hdfs dfs -chown -R gpadmin:gpadmin /user/gpadmin && hdfs dfs -chmod 777 /user/gpadmin;"
@@ -355,7 +355,7 @@ def set_postgresql_conf(mode):
       execute_hawq_cmd("gpconfig --masteronly -c krb_server_keyfile -v \"'{0}'\"".format(params.hawq_keytab_file))
     execute_hawq_cmd("gpstop -m")
   except:
-    raise Exception("\nSecurity parameters cannot be set properly. Please verify postgresql.conf file for the parameters:\n1. enable_secure_filesystem\n2. krb_server_keyfile. \nIf hawq master is running, please stop it using 'gpstop -a' command before issuing start from Ambari UI.")
+    print_to_stderr_and_exit("\nSecurity parameters cannot be set properly. Please verify postgresql.conf file for the parameters:\n1. enable_secure_filesystem\n2. krb_server_keyfile. \nIf hawq master is running, please stop it using 'gpstop -a' command before issuing start from Ambari UI.")
 
 def set_security():
   import params
@@ -412,7 +412,7 @@ def execute_start_command(env=None):
   import params
   dfs_allow_truncate = check_truncate_setting()
   if is_truncate_exception_required(dfs_allow_truncate):
-    raise Exception(DFS_ALLOW_TRUNCATE_ERROR_MESSAGE)
+    print_to_stderr_and_exit(DFS_ALLOW_TRUNCATE_ERROR_MESSAGE)
   set_security()
   command = "source /usr/local/hawq/greenplum_path.sh; gpstart -a -d {0}/gpseg-1".format(params.hawq_master_dir)
   Execute(command, user=params.hawq_user, timeout=600)
