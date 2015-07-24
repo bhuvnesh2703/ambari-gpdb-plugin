@@ -464,6 +464,13 @@ def check_standby_activation_prereq():
   if not params.hawq_standby:
     raise Exception("Standby is not configured")
 
+  # Check if there is postgres process running on master port, if running it indicates that standby has already been activated to active master
+  command = "netstat -tupln | egrep ':{0}\s' | egrep postgres".format(params.hawq_master_port)
+  process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+  stdoutdata, stderrdata = process.communicate()
+  if process.returncode == 0:
+    raise Exception("Active hawq master process is already running on host {0}, standby activation is not required.".format(params.hawq_standby)) 
+
   # Check if postmaster.opts file exists, it helps to identify if hawq_standby is acting as standby
   if not os.path.isfile(params.postmaster_opts_filepath):
     raise Exception("{0} file does not exists on the host {1}, cannot continue with activating standby".format(params.params.postmaster_opts_filepath, params.hostname))
@@ -483,7 +490,7 @@ def check_standby_activation_prereq():
   /usr/local/hawq-1.3.0.0/bin/postgres "-D" "/data/hawq/master/gpseg-1" "-p" "5433" "-b" "1" "-z" "1" "--silent-mode=true" "-i" "-M" "master" "-C" "-1" "-x" "0" "-c" "gp_role=utility"
   """
   if '"-x"' in postmaster_content and not '"gp_role=utility"' in postmaster_content:
-    raise Exception("Contents of {0} on host {1} indicate that it is not currently acting as standby hawq master. ActivateStandby can only be run if host {1} is acting as standby master. Please execute gpactivatestandby manually from command line if standby on host {2} need to be activated".format(params.postmaster_opts_filepath, params.hawq_standby, params.hawq_master))
+    raise Exception("Contents of {0} on host {1} indicate that it is not currently acting as standby hawq master.\nActivateStandby from UI can only be run if host {1} is acting as standby master.\nIf host {2} is acting as standby and need to be activated, please execute gpactivatestandby manually from command line.".format(params.postmaster_opts_filepath, params.hawq_standby, params.hawq_master))
 
   """
   If a lock file /tmp/.s.PGSQL.<master_port>.lock is found on hawq_master host, activate standby will fail stating that an active postgres process in running on it. 
@@ -493,7 +500,7 @@ def check_standby_activation_prereq():
   lock_file_name = "/tmp/.s.PGSQL.{0}.lock".format(params.hawq_master_port)
   # ssh to the hawq_master and identify if file exists or not
   if not active_master_helper.is_file_missing(params.hawq_master, lock_file_name):
-    raise Exception("Lock file /tmp/.s.PGSQL.{0}.lock exists on host {1} suggesting that active postgres process is running on it.\nIf hawq master process is running on host {1}, please follow the steps required to orchestrate a manual failover from command line.\nIf hawq master is not running on host {1}, please delete /tmp/.s.PGSQL.{0}, /tmp/.s.PGSQL.{0}.* and {2}/postmaster.pid files on it before retrying activate standby.".format(params.hawq_master_port, params.hawq_master, params.hawq_master_data_dir))
+    raise Exception("Lock file /tmp/.s.PGSQL.{0}.lock exists on host {1} suggesting that active postgres process is running on it.\nIf hawq master process is running on host {1}, please stop the database before retrying activate standby.\nIf hawq master is not running on host {1}, please delete /tmp/.s.PGSQL.{0}, /tmp/.s.PGSQL.{0}.* and {2}/postmaster.pid files on it before retrying activate standby.".format(params.hawq_master_port, params.hawq_master, params.hawq_master_data_dir))
   
 def try_activate_standby(env):
   import params
