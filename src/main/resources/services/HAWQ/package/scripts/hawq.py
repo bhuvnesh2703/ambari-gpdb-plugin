@@ -459,7 +459,6 @@ def segment_configure(env=None):
   command = "echo -e {0} > {1}/segments-dir".format("\\\\n".join(params.hawq_data_dir.split()), os.path.expanduser('~' + params.hawq_user))
   Execute(command, user=params.hawq_user, timeout=600)
 
-
 def check_standby_activation_prereq():
   import params
   if not params.hawq_standby:
@@ -496,7 +495,6 @@ def check_standby_activation_prereq():
   if not active_master_helper.is_file_missing(params.hawq_master, lock_file_name):
     raise Exception("Lock file /tmp/.s.PGSQL.{0}.lock exists on host {1} suggesting that active postgres process is running on it.\nIf hawq master process is running on host {1}, please follow the steps required to orchestrate a manual failover from command line.\nIf hawq master is not running on host {1}, please delete /tmp/.s.PGSQL.{0}, /tmp/.s.PGSQL.{0}.* and {2}/postmaster.pid files on it before retrying activate standby.".format(params.hawq_master_port, params.hawq_master, params.hawq_master_data_dir))
   
-
 def try_activate_standby(env):
   import params
   check_standby_activation_prereq()
