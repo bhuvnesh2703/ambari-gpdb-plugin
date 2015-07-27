@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+from resource_management import *
 
 def subprocess_command_with_results(user, cmd, hostname):
   import params
@@ -17,5 +18,5 @@ def subprocess_command_with_results(user, cmd, hostname):
   return process.returncode, stdoutdata, stderrdata
 
 def print_to_stderr_and_exit(error_msg):
-  sys.stderr.write(error_msg)
+  Logger.error(error_msg)
   sys.exit(1)
