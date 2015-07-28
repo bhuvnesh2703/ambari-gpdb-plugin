@@ -24,7 +24,7 @@
     <name>hawq.user.password</name>
     <value>gpadmin</value>
     <property-type>PASSWORD</property-type>
-    <description>HAWQ Admin Password - If gpadmin user does not exist, the user will be created using the password specified in this field. During cluster initialization, ssh keys are exchanged using this password. If gpadmin user already exists, the ssh keys needs to be exchanged manually via command line.</description>
+    <description>HAWQ Admin Password - If gpadmin user does not exist, the user will be created using the password specified in this field (default: gpadmin). During cluster initialization, ssh keys are exchanged using this password. If gpadmin user already exists, the ssh keys needs to be exchanged manually via command line.</description>
   </property>
 
   <property>
