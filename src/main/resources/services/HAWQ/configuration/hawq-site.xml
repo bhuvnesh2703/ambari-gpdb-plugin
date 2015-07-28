@@ -24,7 +24,7 @@
     <name>hawq.user.password</name>
     <value>gpadmin</value>
     <property-type>PASSWORD</property-type>
-    <description>HAWQ Admin Password. If the field is left empty, Ambari will assume existing gpadmin user has been created and the Master server will have passwordless ssh to all the Segment servers.</description>
+    <description>HAWQ Admin Password. If gpadmin user does not exist, it will be created using the password specified for this field. During cluster initialization, ssh keys are also exchanged if gpadmin user did not existed earlier, but if gpadmin user already exist, please exchange keys manually from command line.</description>
   </property>
 
   <property>
