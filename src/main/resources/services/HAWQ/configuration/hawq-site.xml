@@ -42,7 +42,7 @@
   <property>
     <name>hawq.temp.directory</name>
     <value> </value>
-    <description>Use as temporary filespace to store workfile cache, sort/join temp files etc. Allocation varies depending on disk storage available on system. E.g. /data11/tmp /data12/tmp ...</description>
+    <description>Use as temporary filespace to store workfile cache, sort/join temp files etc. The recommended number of temp dirs are equal to the number of disks per node. If the field is left empty, HAWQ data directory will be used.</description>
   </property>
 
   <property>
