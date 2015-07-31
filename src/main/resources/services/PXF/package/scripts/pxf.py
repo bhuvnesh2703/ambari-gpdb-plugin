@@ -50,7 +50,8 @@ def generate_config_files(env):
 def start(env):
   #TODO: Change Execute to Service after "service pxf-service start" will handle case,
   #when tcServer is up, but PXF webapp is down. As for now it returns error: "ERROR: Instance is already running as PID=12345."
-  command = "service pxf-service restart"
+  import params
+  command = "service {0} restart".format(params.pxf_service_name)
   Execute(command, timeout=600)
 
 def stop(env):
