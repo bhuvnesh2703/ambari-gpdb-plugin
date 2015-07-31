@@ -280,7 +280,7 @@ def init_hawq(env=None):
   if is_truncate_exception_required(dfs_allow_truncate):
     print_to_stderr_and_exit(DFS_ALLOW_TRUNCATE_ERROR_MESSAGE)
   if params.security_enabled:
-    kinit = "/usr/bin/kinit -kt {0} {1};".format(params._hdfs_headless_keytab, params._hdfs_headless_princpal_name_with_realm)
+    kinit = "/usr/bin/kinit -kt {0} {1};".format(params._hdfs_headless_keytab, params._hdfs_headless_principal_name_with_realm)
     cmd_setup_dir = "hdfs dfs -mkdir -p /user/gpadmin && hdfs dfs -chown -R gpadmin:gpadmin /user/gpadmin && hdfs dfs -chmod 777 /user/gpadmin;"
     cmd_setup_dir += "hdfs dfs -mkdir -p {0} && hdfs dfs -chown -R postgres:gpadmin {0} && hdfs dfs -chmod 755 {0};".format(params.hawq_hdfs_data_dir)
     command = kinit+cmd_setup_dir
