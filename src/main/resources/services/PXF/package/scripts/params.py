@@ -50,5 +50,9 @@ if config["commandType"] == 'EXECUTION_COMMAND':
     pxf_keytab_file = config["configurations"]["pxf-site"]["pxf.service.kerberos.keytab"]
   if security_enabled:
     _nn_principal_name = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
-    _realm_name = config['configurations']['kerberos-env']['realm']
-    _pxf_principal_name = pxf_user + '/_HOST@' + _realm_name
+    # In AMBR 2.0, the column used to derive realm name has changed, so AMBR 1.7 and AMBR 2.0 has different derivation. 
+    # Using the below hack to avoid incompatibilty issues between 2 version.
+    _pxf_principal_name = _nn_principal_name.replace('nn', 'pxf')
+    # TODO - In AMBR 2.0, realm derivation can be done as below.
+    # _realm_name = config['configurations']['kerberos-env']['realm']
+    # _pxf_principal_name = pxf_user + '/_HOST@' + _realm_name

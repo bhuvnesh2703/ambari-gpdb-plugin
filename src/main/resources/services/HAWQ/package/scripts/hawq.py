@@ -280,7 +280,10 @@ def init_hawq(env=None):
   if is_truncate_exception_required(dfs_allow_truncate):
     print_to_stderr_and_exit(DFS_ALLOW_TRUNCATE_ERROR_MESSAGE)
   if params.security_enabled:
-    kinit = "/usr/bin/kinit -kt {0} {1};".format(params._hdfs_headless_keytab, params._hdfs_headless_principal_name_with_realm)
+    # In Ambari 2.0, headless principal will include the realm name as well. (Ex: hdfs@example.com)
+    # In Ambari 1.7, headless principal will not include realm name (Ex: hdfs)
+    # Both of the them will work as the value of default_realm in /etc/krb5.conf is set to the realm
+    kinit = "/usr/bin/kinit -kt {0} {1};".format(params._hdfs_headless_keytab, params._hdfs_headless_principal_name)
     cmd_setup_dir = "hdfs dfs -mkdir -p /user/gpadmin && hdfs dfs -chown -R gpadmin:gpadmin /user/gpadmin && hdfs dfs -chmod 777 /user/gpadmin;"
     cmd_setup_dir += "hdfs dfs -mkdir -p {0} && hdfs dfs -chown -R postgres:gpadmin {0} && hdfs dfs -chmod 755 {0};".format(params.hawq_hdfs_data_dir)
     command = kinit+cmd_setup_dir
