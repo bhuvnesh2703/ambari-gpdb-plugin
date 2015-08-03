@@ -262,11 +262,9 @@ def master_configure(env):
        content=Template("hostfile.j2"))
 
   File(params.hawq_bashrc,
-     content=Template("hawq.bashrc.j2"),
+     content=Template("hawq.sh.j2"),
      owner=params.hawq_user,
      group=params.hawq_group)
-  command = "cat {0} >> {1}/.bashrc".format(params.hawq_bashrc, os.path.expanduser('~' + params.hawq_user))
-  Execute(command, user=params.hawq_user, timeout=600)
 
   command = "echo {0} > {1}/master-dir".format(params.hawq_master_dir, os.path.expanduser('~' + params.hawq_user))
   Execute(command, user=params.hawq_user, timeout=600)
