@@ -366,7 +366,7 @@ def set_security():
   if params.security_enabled:
     if not (enable_secure_filesystem and krb_server_keyfile):
       set_postgresql_conf('on')
-    kinit = "/usr/bin/kinit -kt {0} {1};".format(params._hdfs_headless_keytab, params._hdfs_headless_princpal_name_with_realm)
+    kinit = "/usr/bin/kinit -kt {0} {1};".format(params._hdfs_headless_keytab, params._hdfs_headless_principal_name)
     owner = "postgres:gpadmin"
   else:
     if enable_secure_filesystem:
