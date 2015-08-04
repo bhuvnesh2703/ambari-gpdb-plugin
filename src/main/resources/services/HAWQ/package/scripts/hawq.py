@@ -266,7 +266,7 @@ def master_configure(env):
      owner=params.hawq_user,
      group=params.hawq_group)
 
-  command = "source {0} >> {1}".format(params.hawq_profile, params.hawq_bashrc)
+  command = "echo 'source {0}' >> {1}".format(params.hawq_profile, params.hawq_bashrc)
   already_appended = "cat {0} | grep 'source {1}'".format(params.hawq_bashrc, params.hawq_profile)
   Execute(command, user=params.hawq_user, timeout=600, not_if=already_appended)
 
