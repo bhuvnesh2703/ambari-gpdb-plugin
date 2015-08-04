@@ -55,8 +55,10 @@ def start(env):
   Execute(command, timeout=600)
 
 def stop(env):
+  #TODO: Change Execute to Service after "service pxf-service status" will disregard status of pxf webapp, only tsServer should be a source of true state
   import params
-  Service(params.pxf_service_name, action="stop")
+  command = "service {0} stop".format(params.pxf_service_name)
+  Execute(command, timeout=600)
 
 def status(env):
   import params
