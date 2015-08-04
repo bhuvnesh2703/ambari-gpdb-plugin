@@ -241,6 +241,7 @@ def standby_configure(env):
 
 def master_configure(env):
   import params
+  hawq_home = os.path.expanduser('~' + params.hawq_user)
   if params.security_enabled:
     command  = "chown %s:%s %s &&" % (params.hawq_user, params.user_group, params.hawq_keytab_file)
     command += "chmod 400 %s" % (params.hawq_keytab_file)
@@ -261,16 +262,16 @@ def master_configure(env):
        group=params.hawq_group,
        content=Template("hostfile.j2"))
 
-  File(params.hawq_profile,
+  File(params.hawq_profile.format(hawq_home),
      content=Template("hawq-profile.sh.j2"),
      owner=params.hawq_user,
      group=params.hawq_group)
 
-  command = "echo 'source {0}' >> {1}".format(params.hawq_profile, params.hawq_bashrc)
-  already_appended = "cat {0} | grep 'source {1}'".format(params.hawq_bashrc, params.hawq_profile)
-  Execute(command, user=params.hawq_user, timeout=600, not_if=already_appended)
+  source_command = params.source_command_tmpl.format(hawq_home)
+  already_appended_command = params.already_appended_command_tmpl.format(hawq_home)
+  Execute(source_command, user=params.hawq_user, timeout=600, not_if=already_appended_command)
 
-  command = "echo {0} > {1}/master-dir".format(params.hawq_master_dir, os.path.expanduser('~' + params.hawq_user))
+  command = "echo {0} > {1}/master-dir".format(params.hawq_master_dir, hawq_home)
   Execute(command, user=params.hawq_user, timeout=600)
 
 def is_truncate_exception_required(dfs_allow_truncate):

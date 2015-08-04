@@ -29,11 +29,16 @@ def grant_permissions(env):
 
 def generate_config_files(env):
   import params
+  import shutil
+
   File("{0}/pxf-env.sh".format(params.pxf_conf_dir),
      content=Template("pxf-env.j2"))
 
-  File("{0}/pxf-private.classpath".format(params.pxf_conf_dir),
-       content=Template("pxf-private-classpath.j2"))
+  # by default the rpm installs a pxf-private.classpath that has classpaths for PHD deployments
+  # if the stack is HDP rename pxf-privatehdp.classpath to pxf-private.classpath
+  if(params.stack_name == "HDP"):
+    shutil.copy2("{0}/pxf-privatehdp.classpath".format(params.pxf_conf_dir),
+              "{0}/pxf-private.classpath".format(params.pxf_conf_dir))
 
   if params.security_enabled:
     pxf_site_dict = dict(params.config['configurations']['pxf-site'])
