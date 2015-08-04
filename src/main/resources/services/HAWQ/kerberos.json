@@ -14,7 +14,7 @@
                                 }, 
                                 "owner": {
                                     "access": "r", 
-                                    "name": "${hawq-env/hawq_user}"
+                                    "name": "gpadmin"
                                 }
                             }, 
                             "name": "hawq_master_hawq", 
@@ -40,7 +40,7 @@
                                 }, 
                                 "owner": {
                                     "access": "r", 
-                                    "name": "${hawq-env/hawq_user}"
+                                    "name": "gpadmin"
                                 }
                             }, 
                             "name": "hawq_standby_hawq", 
