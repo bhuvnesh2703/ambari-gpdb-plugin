@@ -14,7 +14,7 @@
                                 }, 
                                 "owner": {
                                     "access": "r", 
-                                    "name": "pxf"
+                                    "name": "${pxf-env/pxf_user}"
                                 }
                             }, 
                             "name": "pxf_client_pxf", 
