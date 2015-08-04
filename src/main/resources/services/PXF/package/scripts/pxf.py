@@ -48,34 +48,21 @@ def generate_config_files(env):
     configuration_attributes=params.config['configuration_attributes']['pxf-site'])
 
 def start(env):
+  #TODO: Change Execute to Service after "service pxf-service start" will handle case,
+  #when tcServer is up, but PXF webapp is down. As for now it returns error: "ERROR: Instance is already running as PID=12345."
   import params
-  #TODO: Change Execute to Service after "service pxf-service status" will be supported
-  command = "service pxf-service restart"
+  command = "service {0} restart".format(params.pxf_service_name)
   Execute(command, timeout=600)
 
 def stop(env):
+  #TODO: Change Execute to Service after "service pxf-service status" will disregard status of pxf webapp, only tsServer should be a source of true state
   import params
-  #TODO: Change Execute to Service after "service pxf-service status" will be supported
-  command = "service pxf-service stop"
+  command = "service {0} stop".format(params.pxf_service_name)
   Execute(command, timeout=600)
 
 def status(env):
   import params
-  import httplib
-  import re
-  # check tcServer process
-  check_process_status(params.tcserver_pid_file)
-
-  # check PXF web service
-  h=httplib.HTTPConnection('localhost', 51200)
   try:
-    h.request("GET","/pxf/v1")
-    response = h.getresponse()
-    data = response.read()
-    obj = re.match(r'.*Wrong version v[0-9]+, supported version is v[0-9]+', data)
-    if not obj:
-      Logger.debug("PXF service is failing with message:\n{0}".format(data))
-      raise ComponentIsNotRunning()
-  except:
-    Logger.debug("Connection failed to PXF service at localhost:51200")
+    Execute("service {0} status".format(params.pxf_service_name))
+  except Exception:
     raise ComponentIsNotRunning()
