@@ -2,7 +2,7 @@ from resource_management import *
 
 def init(env):
   import params
-  #TODO add "init" action to Service resource https://github.com/Pivotal-Hadoop/ambari/blob/trunk/ambari-common/src/main/python/resource_management/core/resources/service.py#L38
+  #TODO add "init" action to Service resource at ambari-common/src/main/python/resource_management/core/resources/service.py#L38
   #TODO change Execute to Service
   command = "service pxf-service init"
   pxf_instance_dir_exists_cmd = "test -e {0}".format(params.pxf_instance_dir)

@@ -45,11 +45,12 @@ class Verifications:
                 self.messages.append(message)
 
     def check_osversion(self):
-        import re
         def vcmp(version1, version2):
-            def normalize(v):
-                return [int(x) for x in re.sub(r'(\.0+)*$','', v).split(".")]
-            return cmp(normalize(version1), normalize(version2))
+            import re
+            v1Array = [int(i) for i in re.sub(r'(\.0+)*$','', version1).split(".")]
+            v2Array = [int(i) for i in re.sub(r'(\.0+)*$','', version2).split(".")]
+            return cmp(v1Array, v2Array)
+
         required = self.requirements.get("minimum_version").get("value")
         actual   = self.hardware.get("osversion")
         if not actual:
