@@ -377,6 +377,10 @@ def set_security():
   Execute(command, user=params.hdfs_superuser, timeout=600)
 
 def set_keytab_permission():
+  """
+  In AMBR 2.0, keytabs are generated after install method has been called, thus not included in configure phase.
+  This method should be called during start only.
+  """
   import params
   if params.security_enabled:
     command = "chown %s:%s %s &&" % (params.hawq_user, params.user_group, params.hawq_keytab_file)

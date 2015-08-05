@@ -17,6 +17,8 @@ class PxfService(Script):
 
   def start(self, env):
     self.configure(env)
+    # In AMBR 2.0, keytabs are generated after install method has been called, thus not included in configure phase.
+    # Attempt to ensure correct permission on keytab should be called during start only.
     pxf.grant_permissions(env)
     pxf.start(env)
 
