@@ -14,10 +14,10 @@ class PxfService(Script):
     pxf.setup_user_group(env)
     pxf.generate_config_files(env)
     pxf.init(env)
-    pxf.grant_permissions(env)
 
   def start(self, env):
     self.configure(env)
+    pxf.grant_permissions(env)
     pxf.start(env)
 
   def stop(self, env):
