@@ -242,10 +242,6 @@ def standby_configure(env):
 def master_configure(env):
   import params
   hawq_home = os.path.expanduser('~' + params.hawq_user)
-  if params.security_enabled:
-    command  = "chown %s:%s %s &&" % (params.hawq_user, params.user_group, params.hawq_keytab_file)
-    command += "chmod 400 %s" % (params.hawq_keytab_file)
-    Execute(command, timeout=600)
 
   Directory([params.hawq_master_dir],
             owner=params.hawq_user,
@@ -380,10 +376,21 @@ def set_security():
   command = kinit+cmd_setup_dir
   Execute(command, user=params.hdfs_superuser, timeout=600)
 
+def set_keytab_permission():
+  """
+  In AMBR 2.0, keytabs are generated after install method has been called, thus not included in configure phase.
+  This method should be called during start only.
+  """
+  import params
+  if params.security_enabled:
+    command = "chown %s:%s %s &&" % (params.hawq_user, params.user_group, params.hawq_keytab_file)
+    command += "chmod 400 %s" % (params.hawq_keytab_file)
+    Execute(command, timeout=600)
+
 def start_hawq(env=None):
+  set_keytab_permission()
   if active_master_helper.is_localhost_active_master():
     check_port_conflict() # Proceed only if there is no port conflict
-    import params
     if is_hawq_initialized():
       execute_start_command(env=None)
     else:
