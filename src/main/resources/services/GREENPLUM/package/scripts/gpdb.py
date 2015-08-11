@@ -78,9 +78,9 @@ def update_limits_file():
             group='root'
   )
 
-  #Generate limits for hawq user, all processes under this user will use those limits
+  #Generate limits for greenplum user, all processes under this user will use those limits
   File('{0}/{1}.conf'.format(params.limits_conf_dir, params.greenplum_user),
-     content=Template("hawq.limits.conf.j2"),
+     content=Template("greenplum.limits.conf.j2"),
      owner=params.greenplum_user,
      group=params.greenplum_group)
 
@@ -108,15 +108,15 @@ def update_sysctl_file():
 
   if is_changed:
 
-    #Generate file with kernel parameters needed by hawq, only if something has been changed by user
+    #Generate file with kernel parameters needed by greenplum, only if something has been changed by user
     File(sysctl_file,
       content=Template("greenplum.sysctl.conf.j2"),
       owner=params.greenplum_user,
       group=params.greenplum_group)
 
-    #Reload kernel sysctl parameters from hawq file. On system reboot this file will be automatically loaded.
+    #Reload kernel sysctl parameters from greenplum file. On system reboot this file will be automatically loaded.
     #Only if some parameters has been changed
-    Execute("sysctl -e -p {0}/hawq.conf".format(params.sysctl_conf_dir), timeout=600)
+    Execute("sysctl -e -p {0}/greenplum.conf".format(params.sysctl_conf_dir), timeout=600)
 
   #Wipe out temp file
   File(sysctl_tmp_file, action = 'delete')
@@ -136,7 +136,7 @@ def update_sysctl_file_suse():
       sysctl_file_dict_original = sysctl_file_dict.copy()
       greenplum_sysctl_dict = read_file_to_dict(params.greenplum_sysctl_conf_tmp)
 
-      #Merge common system file with hawq specific file
+      #Merge common system file with greenplum specific file
       sysctl_file_dict.update(greenplum_sysctl_dict)
 
       if sysctl_file_dict_original != sysctl_file_dict:
@@ -201,7 +201,7 @@ def common_setup(env):
     Group(params.greenplum_group, ignore_failures = True)
     User(params.greenplum_user,
         gid=params.greenplum_group,
-        password=crypt.crypt(params.hawq_password, "salt"),
+        password=crypt.crypt(params.greenplum_password, "salt"),
         groups=[params.greenplum_group, params.user_group],
         ignore_failures = True)
 
@@ -282,7 +282,7 @@ def init_greenplum(env=None):
       command = source + cmd
       Execute(command, user=params.greenplum_user, timeout=600)
     except:
-      # ignore error for now since this can fail because hawq user is created with a different password
+      # ignore error for now since this can fail because greenplum user is created with a different password
       pass
 
   # gpinit
