@@ -9,7 +9,6 @@ import pwd
 import time
 import filecmp
 import active_master_helper
-import custom_params
 import checks_helper
 
 def verify_segments_state(env, active_master_host):

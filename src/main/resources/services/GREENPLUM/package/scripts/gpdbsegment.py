@@ -27,7 +27,7 @@ class GreenplumSegment(Script):
       check_process_status(pid_gpdbsegment)
 
   def display_help(self, operation):
-    Logger.info("Segment {0} operation is controlled by active hawq master, Please wait for master {0} operation to complete.".format(operation))
+    Logger.info("Segment {0} operation is controlled by active greenplum database master, Please wait for master {0} operation to complete.".format(operation))
 
 if __name__ == "__main__":
   GreenplumSegment().execute()

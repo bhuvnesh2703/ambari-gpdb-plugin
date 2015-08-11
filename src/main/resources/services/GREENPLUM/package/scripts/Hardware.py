@@ -18,7 +18,7 @@ class Hardware:
   def __init__(self):
     self.hardware = {}
     self.hardware['mounts']      = self.osdisks()
-    self.hardware['mounts_hawq'] = self.osdisks_hawq()
+    self.hardware['mounts_grenplum'] = self.osdisks_greenplum()
     self.hardware['osparams']    = self.osparams()
     self.hardware['osversion']   = self.osversion()
     self.hardware['user_groups'] = self.groups()
@@ -65,16 +65,16 @@ class Hardware:
     pass
     return mounts
 
-  ############## HAWQ (BEGIN) ############## 
+  ############## Greenplum (BEGIN) ############## 
   @staticmethod
-  def osdisks_hawq():
-    """ Run df to find out the disks on the host for HAWQ """
+  def osdisks_greenplum():
+    """ Run df to find out the disks on the host for Greenplum"""
     import params
     mounts = {}
-    if os.path.isdir(params.hawq_master_dir):
-      mounts["master"]  = Hardware.osdisks_directory(params.hawq_master_dir)
-    if os.path.isdir(params.hawq_data_dir):
-      mounts["segment"] = Hardware.osdisks_directory(params.hawq_data_dir)
+    if os.path.isdir(params.greenplum_master_dir):
+      mounts["master"]  = Hardware.osdisks_directory(params.greenplum_master_dir)
+    if os.path.isdir(params.greenplum_data_dir):
+      mounts["segment"] = Hardware.osdisks_directory(params.greenplum_data_dir)
     return mounts
 
   @staticmethod
@@ -115,10 +115,10 @@ class Hardware:
   @staticmethod
   def groups():
     import params
-    groups = subprocess.Popen("groups %s" % params.hawq_user, shell=True, stdout=subprocess.PIPE)
+    groups = subprocess.Popen("groups %s" % params.greenplum_user, shell=True, stdout=subprocess.PIPE)
     groupsdata = groups.communicate()[0]
     return groupsdata.split(':')[1].split()
-  ############## HAWQ (END) ################
+  ############## Greenplum (END) ################
 
 
   def get(self):

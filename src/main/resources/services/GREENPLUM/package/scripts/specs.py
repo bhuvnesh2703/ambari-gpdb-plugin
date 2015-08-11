@@ -1,8 +1,3 @@
-"""
-Requirements gathered from
-http://pivotalhd.docs.pivotal.io/doc/2100/webhelp/index.html#topics/PreparingtoInstallHAWQ.html
-http://pivotalhd.docs.pivotal.io/doc/2100/webhelp/index.html#topics/InstallingHAWQ.html
-"""
 
 requirements = {
   "minimum_memory" : {
@@ -11,7 +6,7 @@ requirements = {
   },
   "minimum_disk" : {
     "value"   : 2*1024*1024, # value in KB
-    "message" : "Disk requirements: 2GB per host for HAWQ installation"
+    "message" : "Disk requirements: 2GB per host for Greenplum installation"
   },
   "minimum_version" : {
     "value"   : "6.4",
@@ -23,7 +18,7 @@ requirements = {
   },
   "user_groups" : {
     "value"   : ["gpadmin", "hadoop"],
-    "message" : "HAWQ user (gpadmin) must be in  groups: [gpadmin, hadoop]"
+    "message" : "Greenplum user (gpadmin) must be in  groups: [gpadmin, hadoop]"
   }
 }
 

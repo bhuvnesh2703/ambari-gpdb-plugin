@@ -5,7 +5,7 @@ class Verifications:
         self.messages = []
 
     def mandatory_checks(self, component):
-        self.check_hawq_user()
+        self.check_greenplum_user()
         if component == "master":
             self.check_segment_count()
         if component == "segment":
@@ -62,7 +62,7 @@ class Verifications:
 
     def check_disk_segment(self):
         required = self.requirements.get("minimum_disk").get("value")
-        actual   = int( self.hardware.get("mounts_hawq").get("segment").get("available") )
+        actual   = int( self.hardware.get("mounts_greenplum").get("segment").get("available") )
         if actual < required:
             message = self.requirements.get("minimum_disk").get("message")
             message += " - System value: %.2fGB" % (actual/1024.0/1024.0)
@@ -76,7 +76,7 @@ class Verifications:
             message = self.requirements.get("max_segments_per_node").get("message")
             self.messages.append(message)
 
-    def check_hawq_user(self):
+    def check_greenplum_user(self):
         required = self.requirements.get("user_groups").get("value")
         actual   = self.hardware.get("user_groups")
         missing  = filter(lambda x: x not in actual, required)
@@ -92,14 +92,11 @@ class Verifications:
         notice = "Host system verification failed:\n\n"
         notice += 'x '+'\nx '.join(self.get_messages())
 
-        notice += "\n\nPlease run the following command to delete the HAWQ service and reinstall:"
-        notice += '\n\tcurl -u USERNAME:PASSWORD -H "X-Requested-By: ambari" -X DELETE  http://AMBARI_SERVER_HOST:8080/api/v1/clusters/CLUSTER_NAME/services/HAWQ'
-        notice += '\nIf you also tried to install PXF, leaving it in an invalid state:'
-        notice += '\n\tcurl -u USERNAME:PASSWORD -H "X-Requested-By: ambari" -X DELETE  http://AMBARI_SERVER_HOST:8080/api/v1/clusters/CLUSTER_NAME/services/PXF'
-
+        notice += "\n\nPlease run the following command to delete the Greenplum service and reinstall:"
+        notice += '\n\tcurl -u USERNAME:PASSWORD -H "X-Requested-By: ambari" -X DELETE  http://AMBARI_SERVER_HOST:8080/api/v1/clusters/CLUSTER_NAME/services/GREENPLUM'
         notice += "\n\n(NOTE: To skip the optional preinstall checks (e.g. if you are installing "
         notice += "on a test cluster) during your next install, set skip.preinstall.verification "
-        notice += "to TRUE in 'Advanced hawq-site' at the configuration step during the install.)"
+        notice += "to TRUE in 'Advanced greenplum-site' at the configuration step during the install.)"
 
         return notice
 
