@@ -253,7 +253,7 @@ def master_configure(env):
   File(params.greenplum_profile.format(greenplum_home),
      content=Template("greenplum-profile.sh.j2"),
      owner=params.greenplum_user,
-     group=params.greeplum_group)
+     group=params.greenplum_group)
 
   source_command = params.source_command_tmpl.format(greenplum_home)
   already_appended_command = params.already_appended_command_tmpl.format(greenplum_home)
@@ -318,7 +318,7 @@ def execute_start_command(env=None):
   command = "source /usr/local/greenplum-db/greenplum_path.sh; gpstart -a -d {0}/gpseg-1".format(params.greenplum_master_dir)
   Execute(command, user=params.greenplum_user, timeout=600)
 
-def stop_greenpulm(env=None):
+def stop_greenplum(env=None):
   """
   Case 1: If database is running, gpsyncmaster process LISTENS on greenplum master port on standby
   [root@hdm1 ~]# netstat -tupln | egrep 5432
