@@ -4,39 +4,25 @@
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
-      <name>HAWQ</name>
-      <displayName>HAWQ</displayName>
-      <comment>Pivotal HAWQ - Hadoop SQL Engine</comment>
-      <version>1.3</version>
+      <name>GREENPLUM</name>
+      <displayName>GREENPLUM</displayName>
+      <comment>Pivotal Greenplum Database</comment>
+      <version>4.3.5.2</version>
       <components>
 
         <component>
-          <name>HAWQMASTER</name>
-          <displayName>HAWQ Master</displayName>
+          <name>GPDBMASTER</name>
+          <displayName>GPDB Master</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
           <commandScript>
-            <script>scripts/hawqmaster.py</script>
+            <script>scripts/gpdbmaster.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>4000</timeout>
           </commandScript>
           <dependencies>
             <dependency>
-              <name>HDFS/NAMENODE</name>
-              <scope>cluster</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-            <dependency>
-              <name>HDFS/HDFS_CLIENT</name>
-              <scope>host</scope>
-              <auto-deploy>
-                  <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-            <dependency>
-              <name>HAWQ/HAWQSEGMENT</name>
+              <name>GREENPLUM/GPDBSEGMENT</name>
               <scope>cluster</scope>
               <auto-deploy>
                 <enabled>true</enabled>
@@ -46,12 +32,12 @@
         </component>
 
       <component>
-          <name>HAWQSTANDBY</name>
-          <displayName>HAWQ Standby Master</displayName>
+          <name>GPDBSTANDBY</name>
+          <displayName>GPDB Standby Master</displayName>
           <category>MASTER</category>
           <cardinality>0-1</cardinality>
           <commandScript>
-              <script>scripts/hawqstandby.py</script>
+              <script>scripts/gpdbstandby.py</script>
               <scriptType>PYTHON</scriptType>
               <timeout>600</timeout>
           </commandScript>
@@ -59,55 +45,33 @@
               <customCommand>
                   <name>ActivateStandby</name>
                   <commandScript>
-                      <script>scripts/hawqstandby.py</script>
+                      <script>scripts/gpdbstandby.py</script>
                       <scriptType>PYTHON</scriptType>
                       <timeout>600</timeout>
                   </commandScript>
               </customCommand>
           </customCommands>
-          <dependencies>
-            <dependency>
-                <name>HDFS/HDFS_CLIENT</name>
-                <scope>host</scope>
-                <auto-deploy>
-                    <enabled>true</enabled>
-                </auto-deploy>
-            </dependency>
-          </dependencies>
       </component>
 
         <component>
-          <name>HAWQSEGMENT</name>
-          <displayName>HAWQ Segment</displayName>
+          <name>GPDBSEGMENT</name>
+          <displayName>GPDB Segment</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
           <commandScript>
-            <script>scripts/hawqsegment.py</script>
+            <script>scripts/gpdbsegment.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
-           <dependencies>
-            <dependency>
-              <name>HDFS/DATANODE</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>false</enabled>
-                <co-locate>HDFS/DATANODE</co-locate>
-              </auto-deploy>
-            </dependency>
-          </dependencies>
         </component>
       </components> 
-      <requiredServices>
-          <service>HDFS</service>
-      </requiredServices>
 
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
            <packages>
             <package>
-              <name>hawq</name>
+              <name>greenplum</name>
             </package>
           </packages>
         </osSpecific>
@@ -120,7 +84,7 @@
       </commandScript>
 
       <configuration-dependencies>
-        <config-type>hawq-site</config-type>
+        <config-type>greenplum-site</config-type>
       </configuration-dependencies>
     </service>
 
