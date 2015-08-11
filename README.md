@@ -47,15 +47,6 @@ e.g /var/lib/ambari-server/resources/stacks/PHD/3.0/services/GPDB/metainfo.xml
             </commandScript>
         </customCommand>
     </customCommands>
-    <dependencies>
-      <dependency>
-          <name>HDFS/HDFS_CLIENT</name>
-          <scope>host</scope>
-          <auto-deploy>
-              <enabled>true</enabled>
-          </auto-deploy>
-      </dependency>
-    </dependencies>
 </component>
 
 ```
