@@ -1,4 +1,4 @@
-Ambari HAWQ plugin
+Ambari GPDB plugin
 =================================
 
 How to install
