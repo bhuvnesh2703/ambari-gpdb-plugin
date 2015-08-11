@@ -10,7 +10,7 @@ greenplum_standby = None
 greenplum_master_dir = '/data/greenplum/master'
 greenplum_data_dir   = '/data/greenplum/segments'
 greenplum_master_dbid_path_suffix = '/gpseg-1/gp_dbid'
-greenplum_tmp_dir    = '/tmp/hawq/'
+greenplum_tmp_dir    = '/tmp/greenplum/'
 greenplum_user       = 'gpadmin'
 greenplum_group      = 'gpadmin'
 greenplum_gphome     = '/usr/local/greenplum-db/'
@@ -31,10 +31,10 @@ greenplum_sysctl_conf_backup = "/etc/sysctl.conf.backup.{0}"
 if config["commandType"] == 'EXECUTION_COMMAND':
   hdfs_superuser  = config["configurations"]["hdfs-site"]["dfs.cluster.administrators"].strip()
   dfs_url       = config["configurations"]["core-site"]["fs.defaultFS"].replace("hdfs://", "")
-  greenplum_master   = config["clusterHostInfo"]["hawqmaster_hosts"][0]
-  greenplum_segments = config["clusterHostInfo"]["hawqsegment_hosts"]
+  greenplum_master   = config["clusterHostInfo"]["greenplummaster_hosts"][0]
+  greenplum_segments = config["clusterHostInfo"]["greenplumsegment_hosts"]
   
-  if "greenplumstandby_hosts" in config["clusterHostInfo"]: # existence of the key should be explicitly checked. Otherwise, (like 'if config["clusterHostInfo"]["hawqstandby_hosts"]:') throws an error from config_dictionary.py's UnknownConfiguration class
+  if "greenplumstandby_hosts" in config["clusterHostInfo"]: # existence of the key should be explicitly checked. Otherwise, (like 'if config["clusterHostInfo"]["greenplumstandby_hosts"]:') throws an error from config_dictionary.py's UnknownConfiguration class
     if len(config["clusterHostInfo"]["greenplumstandby_hosts"]) > 0:
       greenplum_standby = config["clusterHostInfo"]["greenplumstandby_hosts"][0]
   greenplum_master = config["clusterHostInfo"]["greenplummaster_hosts"][0]
