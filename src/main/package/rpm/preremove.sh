@@ -18,12 +18,12 @@ def extract_os_family(os_tag):
 
   raise Exception("Neither 'family' nor 'tag' attribute is found in <os> tag in repoinfo.xml")
 
-def remove_hawq_roles(stack_dir):
+def remove_gpdb_roles(stack_dir):
   file_path = '{0}/role_command_order.json'.format(stack_dir)
   json_data=open(file_path, 'r+')
   data = json.load(json_data)
   
-  for key in ['HAWQ-INSTALL','HAWQMASTER-START','HAWQ_SERVICE_CHECK-SERVICE_CHECK']:
+  for key in ['GPDB-INSTALL','GPDBMASTER-START','GPDB_SERVICE_CHECK-SERVICE_CHECK']:
     if data['general_deps'].has_key(key):
       data['general_deps'].pop(key)
 
@@ -37,7 +37,7 @@ def remove_pads_repo(stack_dir):
   tree = ET.parse(file_path)
   root = tree.getroot()
   
-  PADS_REPO_NAME='PADS'
+  PADS_REPO_NAME='GPDB'
   file_needs_update = False
   for os_tag in root.findall('.//os'):
     os_family = extract_os_family(os_tag)
@@ -54,10 +54,10 @@ PHD_STACK_DIR = '/var/lib/ambari-server/resources/stacks/PHD/3.0'
 HDP_STACK_DIR = '/var/lib/ambari-server/resources/stacks/HDP/2.2'
 
 if os.path.isdir(PHD_STACK_DIR):
-  remove_hawq_roles(PHD_STACK_DIR)
+  remove_gpdb_roles(PHD_STACK_DIR)
   remove_pads_repo(PHD_STACK_DIR)
 elif os.path.isdir(HDP_STACK_DIR):
-  remove_hawq_roles(HDP_STACK_DIR)
+  remove_gpdb_roles(HDP_STACK_DIR)
   remove_pads_repo(HDP_STACK_DIR)
 else:
   raise Exception("Neither PHD/3.0 nor HDP/2.2 stacks are found in /var/lib/ambari-server/resources/stacks/ directory")
