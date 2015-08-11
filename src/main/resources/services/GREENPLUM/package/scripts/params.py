@@ -9,9 +9,6 @@ greenplum_standby = None
 with open("/tmp/gpdb-configs", "w") as fh:
   fh.write(str(config))
 
-with open("/tmp/gpdb-clusterhostinfo", "w") as fh:
-  fh.write(str(config["clusterHostInfo"]))
-
 greenplum_master_dir = '/data/greenplum/master'
 greenplum_data_dir   = '/data/greenplum/segments'
 greenplum_master_dbid_path_suffix = '/gpseg-1/gp_dbid'

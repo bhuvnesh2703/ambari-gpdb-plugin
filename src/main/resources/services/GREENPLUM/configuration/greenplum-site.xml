@@ -36,7 +36,7 @@
   <property>
     <name>greenplum.segment.data.directory</name>
     <value>/data/greenplum/segments</value>
-    <description>DATA_DIRECTORY for greenplum segment configuration, please input a space delimited list of directories on which hawq segments/node needs to be created. E.g. /data1/primary /data2/primary /data3/primary </description>
+    <description>DATA_DIRECTORY for greenplum segment configuration, please input a space delimited list of directories on which greenplum segments/node needs to be created. E.g. /data1/primary /data2/primary /data3/primary </description>
   </property>
 
   <property>

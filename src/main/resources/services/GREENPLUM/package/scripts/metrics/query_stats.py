@@ -35,9 +35,9 @@ class QueryMemoryStats(object):
                     # mem_stats.append(MetricValue(mem_metric_name,  mem, "int32", False))
 
 
-        mem_stats.append(MetricValue("hawq.QueryMetrics.AggregatedHostMemory", aggregated_host_mem,
+        mem_stats.append(MetricValue("gpdb.QueryMetrics.AggregatedHostMemory", aggregated_host_mem,
                                      "int32", True))
-        mem_stats.append(MetricValue("hawq.QueryMetrics.AggregatedHostCPU", aggregated_host_cpu,
+        mem_stats.append(MetricValue("gpdb.QueryMetrics.AggregatedHostCPU", aggregated_host_cpu,
                                      "int32", True))
 
         return mem_stats  

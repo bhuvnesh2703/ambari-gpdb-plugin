@@ -101,10 +101,15 @@ def identify_active_master_by_timestamp(hostname):
   standby_dbid_on_standby = get_standby_dbid(params.greenplum_standby, params.postmaster_opts_filepath)
   master_postmaster_mtime = get_last_modified_time(params.greenplum_master, params.postmaster_opts_filepath)
   standby_postmaster_mtime = get_last_modified_time(params.greenplum_standby, params.postmaster_opts_filepath)
+  if standby_dbid_on_master == '"0"':
+    return params.greenplum_standby
+  return params.greenplum_master
+  """
   if master_postmaster_mtime > standby_postmaster_mtime and standby_dbid_on_master == '"0"' and standby_dbid_on_standby !='"0"':
     return params.greenplum_master
   elif  master_postmaster_mtime < standby_postmaster_mtime and standby_dbid_on_standby == '"0"' and standby_dbid_on_master !='"0"':
     return params.greenplum_standby
+  """
 
 def is_localhost_active_master():
   # Identify if localhost is the active master

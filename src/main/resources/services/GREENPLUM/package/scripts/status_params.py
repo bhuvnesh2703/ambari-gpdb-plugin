@@ -20,13 +20,9 @@ Execute(cmd, timeout=600)
 
 pid_gpdbmaster = "{0}/greenplum_master.pid".format(params.greenplum_tmp_dir)
 pid_postmaster = "{0}/gpseg-1/postmaster.pid".format(master_dir)
-with open("/tmp/pid_gpdbmaster", "w") as fh:
-  fh.write("pid_gpdbmaster: " + str(pid_gpdbmaster) + " pid_postmaster: " + str(pid_postmaster))
 if os.path.isfile(pid_postmaster):
   with open(pid_postmaster, 'r') as f:
     pid = f.readline()
-    with open("/tmp/pidfile", "w") as fh:
-      fh.write("pid: " + str(pid))
     File(pid_gpdbmaster,
          content=pid,
          owner=params.greenplum_user,

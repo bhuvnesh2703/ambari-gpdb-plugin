@@ -14,12 +14,12 @@ import checks_helper
 def verify_segments_state(env, active_master_host):
   import params
   env.set_params(params)
-  command = "source /usr/local/greenplum-db/greenplum_path.sh; gpstate -t -d {0}/gpseg-1".format(params.greenplum_master_dir)
+  command = "source /usr/local/greenplum-db/greenplum_path.sh; gpstate -d {0}/gpseg-1".format(params.greenplum_master_dir)
   (retcode, out, err) = subprocess_command_with_results(params.greenplum_user, command, active_master_host)
   if retcode:
     print_to_stderr_and_exit("gpstate command returned non-zero result: {0}. Out: {1} Error: {2}".format(retcode, out, err))
 
-  Logger.info("Service check results:\nOutput of gpstate -t -d {0}\n".format(params.greenplum_master_data_dir) + str(out) + "\n")
+  Logger.info("Service check results:\nOutput of gpstate -d {0}\n".format(params.greenplum_master_data_dir) + str(out) + "\n")
 
   if [status_line for status_line in out.split('\n') if (status_line.startswith('gpseg') and status_line.split(" ")[1 ] == 'd')]:
     print_to_stderr_and_exit("Service check detected that some of the Greenplum segments are down. run 'gpstate -t' on master for more info")
@@ -298,6 +298,8 @@ def init_greenplum(env=None):
       raise ex
 
 def start_greenplum(env=None):
+  with open("/tmp/active_master_host", "w") as fh:
+    fh.write(str(active_master_helper.get_active_master_host()))
   if active_master_helper.is_localhost_active_master():
     check_port_conflict() # Proceed only if there is no port conflict
     if is_greenplum_initialized():
