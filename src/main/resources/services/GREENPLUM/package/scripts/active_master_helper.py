@@ -2,11 +2,11 @@ from resource_management import *
 from common import subprocess_command_with_results, print_to_stderr_and_exit
 import os
 
-GREENPLUM_START_HELP = "\nSteps to start hawq database from active hawq master:\nLogin as gpadmin user: su - gpadmin\nSource greenplum_path.sh: source /usr/local/hawq/greenplum_path.sh\nStart database: gpstart -a -d {0}."
-UNABLE_TO_IDENTIFY_ACTIVE_MASTER = "Unable to identify active hawq master. Contents of {0}/postmaster.opts file are inconsistent on hawq master and standby due to which active hawq master cannot be identified. Please start the database from active hawq master manually from command line." + GREENPLUM_START_HELP
-POSTMASTER_OPTS_MISSING = "{0}/postmaster.opts is not found, kind validate if master data directory exists along with postmaster.opts file on both hawq master and standby servers.\nPlease execute database start operation from active hawq master until its fixed, as without postmaster.opts available on both master servers active master cannot be identified.\nNote: postmaster.opts will be automatically created during hawq startup. " + GREENPLUM_START_HELP
-BOTH_MASTER_HAS_STANDBY_CONTENT = "Unable to identify active hawq master. Content of {0}/postmaster.opts on hawq master and standby host indicates that they are currently acting as standby servers. If orginal hawq master is now not available, please activate standby to resume database operations."
-MASTER_STARTED_IN_UTILITY_MODE = "{0}/postmaster.opts contents indicate that database was started in utility mode previously, due to which active master cannot be identified with certainty.\nPlease start the database in normal mode from active hawq master manually from command line for now to fix it." + GREENPLUM_START_HELP
+GREENPLUM_START_HELP = "\nSteps to start greenplum database from active greenplum master:\nLogin as gpadmin user: su - gpadmin\nSource greenplum_path.sh: source /usr/local/greenplum-db/greenplum_path.sh\nStart database: gpstart -a -d {0}."
+UNABLE_TO_IDENTIFY_ACTIVE_MASTER = "Unable to identify active greenplum master. Contents of {0}/postmaster.opts file are inconsistent on greenplum master and standby due to which active greenplum master cannot be identified. Please start the database from active greenplum master manually from command line." + GREENPLUM_START_HELP
+POSTMASTER_OPTS_MISSING = "{0}/postmaster.opts is not found, kind validate if master data directory exists along with postmaster.opts file on both greenplum master and standby servers.\nPlease execute database start operation from active greenplum master until its fixed, as without postmaster.opts available on both master servers active master cannot be identified.\nNote: postmaster.opts will be automatically created during greenplum startup. " + GREENPLUM_START_HELP
+BOTH_MASTER_HAS_STANDBY_CONTENT = "Unable to identify active greenplum master. Content of {0}/postmaster.opts on greenplum master and standby host indicates that they are currently acting as standby servers. If orginal greenplum master is now not available, please activate standby to resume database operations."
+MASTER_STARTED_IN_UTILITY_MODE = "{0}/postmaster.opts contents indicate that database was started in utility mode previously, due to which active master cannot be identified with certainty.\nPlease start the database in normal mode from active greenplum master manually from command line for now to fix it." + GREENPLUM_START_HELP
 
 def get_last_modified_time(hostname, filepath):
   import params
@@ -17,7 +17,7 @@ def get_last_modified_time(hostname, filepath):
 def get_standby_dbid(hostname, filepath):
   """
   Example contents of postmaster.opts for master configured with standby:
-  /usr/local/hawq-1.3.0.0/bin/postgres "-D" "/data/hawq/master/gpseg-1" "-p" "5432" "-b" "1" "-z" "10" "--silent-mode=true" "-i" "-M" "master" "-C" "-1" "-x" "12" "-E"
+  /usr/local/greenplum-db/bin/postgres "-D" "/data/greenplum/master/gpseg-1" "-p" "5432" "-b" "1" "-z" "10" "--silent-mode=true" "-i" "-M" "master" "-C" "-1" "-x" "12" "-E"
 
   Output "12" string after "-x" flag which indicates the dbid of the standby
   """
@@ -58,12 +58,12 @@ def identify_active_master():
   Example contents of postmaster.opts in 2 different cases
   Case 1: Master configured with Standby:
   Contents on master postmaster.opts
-  postgres "-D" "/data/hawq/master/gpseg-1" "-p" "5432" "-b" "1" "-z" "10" "--silent-mode=true" "-i" "-M" "master" "-C" "-1" "-x" "12" "-E"
+  postgres "-D" "/data/greenplum/master/gpseg-1" "-p" "5432" "-b" "1" "-z" "10" "--silent-mode=true" "-i" "-M" "master" "-C" "-1" "-x" "12" "-E"
   Contents of standby postmaster.opts:
-  postgres "-D" "/data/hawq/master/gpseg-1" "-p" "5432" "-b" "12" "-C" "-1" "-z" "10" "-i"
+  postgres "-D" "/data/greenplum/master/gpseg-1" "-p" "5432" "-b" "12" "-C" "-1" "-z" "10" "-i"
 
   Case 2: Master configured without standby:
-  postgres "-D" "/data/hawq/master/gpseg-1" "-p" "5432" "-b" "1" "-z" "10" "--silent-mode=true" "-i" "-M" "master" "-C" "-1" "-x" "0" "-E"
+  postgres "-D" "/data/greenplum/master/gpseg-1" "-p" "5432" "-b" "1" "-z" "10" "--silent-mode=true" "-i" "-M" "master" "-C" "-1" "-x" "0" "-E"
 
   Interpretation:
   postmaster.opts (if present) contains information for the segment startup parameters. Flag "-x" can indicate if the server is a master (with or without standby) or standby
@@ -114,11 +114,11 @@ def is_localhost_active_master():
 
 def get_active_master_host():
   """
-  1. greenplum_master will always be the active master in hawq cluster without
+  1. greenplum_master will always be the active master in greenplum cluster without
   standby.
 
-  2. If cluster is configured with hawq master & standby, but master data
-  directory does not exists on both the hosts, it suggests that hawq database
+  2. If cluster is configured with greenplum master & standby, but master data
+  directory does not exists on both the hosts, it suggests that greenplum database
   is not initialized & cluster must be initialized with greenplum_master as the
   active master.
   """
@@ -133,5 +133,5 @@ def get_active_master_host():
   else:
     active_master_host = identify_active_master()
   if active_master_host not in params.master_hosts:
-    print_to_stderr_and_exit("Host {0} not in the list of configured master hosts {1}. Please execute the requested operation from active hawq master manually".format(active_master_host, " and ".join(params.master_hosts)))
+    print_to_stderr_and_exit("Host {0} not in the list of configured master hosts {1}. Please execute the requested operation from active greenplum master manually".format(active_master_host, " and ".join(params.master_hosts)))
   return active_master_host
