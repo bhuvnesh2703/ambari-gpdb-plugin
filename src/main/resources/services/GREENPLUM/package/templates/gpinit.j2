@@ -1,0 +1,73 @@
+# FILE NAME: gpinitsystem_config
+
+# Configuration file needed by the gpinitsystem
+
+################################################
+#### REQUIRED PARAMETERS
+################################################
+
+#### Name of this Greenplum system enclosed in quotes.
+ARRAY_NAME={{hawq_cluster_name}}
+
+#### Naming convention for utility-generated data directories.
+SEG_PREFIX=gpseg
+
+#### Base number by which primary segment port numbers
+#### are calculated.
+PORT_BASE={{hawq_segment_base_port}}
+
+#### File system location(s) where primary segment data directories
+#### will be created. The number of locations in the list dictate
+#### the number of primary segments that will get created per
+#### physical host (if multiple addresses for a host are listed in
+#### the hostfile, the number of segments will be spread evenly across
+#### the specified interface addresses).
+declare -a DATA_DIRECTORY=( {{hawq_data_dir}} )
+{% if hawq_temp_directory %}
+declare -a TEMP_DIRECTORY=({{hawq_temp_directory}})
+{% endif %}
+
+#### OS-configured hostname or IP address of the master host.
+MASTER_HOSTNAME={{hawq_master}}
+
+#### File system location where the master data directory
+#### will be created.w
+MASTER_DIRECTORY={{hawq_master_dir}}
+
+#### Port number for the master instance.
+MASTER_PORT={{hawq_master_port}}
+
+#### Shell utility used to connect to remote hosts.
+TRUSTED_SHELL=ssh
+
+#### Maximum log file segments between automatic WAL checkpoints.
+CHECK_POINT_SEGMENTS=8
+
+#### Default server-side character set encoding.
+ENCODING=UNICODE
+
+################################################
+#### Distributed File System Informaiton
+################################################
+
+{% if ha_enabled %}
+DFS_URL={{_nn_dfs_nameservices}}{{hawq_hdfs_data_dir}}
+{% else %}
+DFS_URL={{dfs_url}}{{hawq_hdfs_data_dir}}
+{% endif %}
+
+DFS_NAME=hdfs
+
+KERBEROS_KEYFILE={{hawq_keytab_file}}
+{% if security_enabled %}
+ENABLE_SECURE_FILESYSTEM=on
+{% else %}
+ENABLE_SECURE_FILESYSTEM=off
+{% endif %}
+
+################################################
+#### OTHER OPTIONAL PARAMETERS
+################################################
+
+#### Create a database of this name after initialization.
+DATABASE_NAME=gpadmin

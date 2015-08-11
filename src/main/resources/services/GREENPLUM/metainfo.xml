@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>HAWQ</name>
+      <displayName>HAWQ</displayName>
+      <comment>Pivotal HAWQ - Hadoop SQL Engine</comment>
+      <version>1.3</version>
+      <components>
+
+        <component>
+          <name>HAWQMASTER</name>
+          <displayName>HAWQ Master</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <commandScript>
+            <script>scripts/hawqmaster.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>4000</timeout>
+          </commandScript>
+          <dependencies>
+            <dependency>
+              <name>HDFS/NAMENODE</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                  <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>HAWQ/HAWQSEGMENT</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
+
+      <component>
+          <name>HAWQSTANDBY</name>
+          <displayName>HAWQ Standby Master</displayName>
+          <category>MASTER</category>
+          <cardinality>0-1</cardinality>
+          <commandScript>
+              <script>scripts/hawqstandby.py</script>
+              <scriptType>PYTHON</scriptType>
+              <timeout>600</timeout>
+          </commandScript>
+          <customCommands>
+              <customCommand>
+                  <name>ActivateStandby</name>
+                  <commandScript>
+                      <script>scripts/hawqstandby.py</script>
+                      <scriptType>PYTHON</scriptType>
+                      <timeout>600</timeout>
+                  </commandScript>
+              </customCommand>
+          </customCommands>
+          <dependencies>
+            <dependency>
+                <name>HDFS/HDFS_CLIENT</name>
+                <scope>host</scope>
+                <auto-deploy>
+                    <enabled>true</enabled>
+                </auto-deploy>
+            </dependency>
+          </dependencies>
+      </component>
+
+        <component>
+          <name>HAWQSEGMENT</name>
+          <displayName>HAWQ Segment</displayName>
+          <category>SLAVE</category>
+          <cardinality>1+</cardinality>
+          <commandScript>
+            <script>scripts/hawqsegment.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+           <dependencies>
+            <dependency>
+              <name>HDFS/DATANODE</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>false</enabled>
+                <co-locate>HDFS/DATANODE</co-locate>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
+      </components> 
+      <requiredServices>
+          <service>HDFS</service>
+      </requiredServices>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+           <packages>
+            <package>
+              <name>hawq</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <configuration-dependencies>
+        <config-type>hawq-site</config-type>
+      </configuration-dependencies>
+    </service>
+
+  </services>
+</metainfo>
+

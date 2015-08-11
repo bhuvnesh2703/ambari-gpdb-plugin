@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<configuration supports_final="true">
+  <property>
+    <name>greenplum.cluster.name</name>
+    <value>hackathon-demo</value>
+    <description>Greenplum cluster name</description>
+  </property>
+
+  <property>
+    <name>greenplum.master.port</name>
+    <value>5432</value>
+    <description>Port number for Greenplum master and Greenplum standby</description>
+  </property>
+
+  <property>
+    <name>greenplum.segment.base.port</name>
+    <value>40000</value>
+    <description>Base port number for greenplum segments</description>
+  </property>
+
+  <property>
+    <name>greenplum.user.password</name>
+    <value>gpadmin</value>
+    <property-type>PASSWORD</property-type>
+    <description>Greenplum Admin Password - If gpadmin user does not exist, the user will be created using the password specified in this field (default: gpadmin). During cluster initialization, ssh keys are exchanged using this password. If gpadmin user already exists, the ssh keys needs to be exchanged manually via command line.</description>
+  </property>
+
+  <property>
+    <name>greenplum.master.directory</name>
+    <value>/data/greenplum/master</value>
+    <description>MASTER_DIRECTORY for Greenplum configurations, catalog and metadata</description>
+  </property>
+
+  <property>
+    <name>greenplum.segment.data.directory</name>
+    <value>/data/greenplum/segments</value>
+    <description>DATA_DIRECTORY for greenplum segment configuration, please input a space delimited list of directories on which hawq segments/node needs to be created. E.g. /data1/primary /data2/primary /data3/primary </description>
+  </property>
+
+  <property>
+    <name>set.os.parameters</name>
+    <value>true</value>
+    <description>Set to TRUE to enable setting parameters in /etc/sysctl.conf and /etc/security/limits.conf to recommended values for HAWQ</description>
+  </property>
+
+  <property>
+    <name>skip.preinstall.verification</name>
+    <value>true</value>
+    <description>Set to TRUE if you would like to skip preinstall cluster verification on system parameters and settings, e.g. memory, disk, OS, and port requ
+irements.</description>
+  </property>
+
+  <property>
+    <name>sysctl.vm.overcommit_memory</name>
+    <value>1</value>
+    <description>Set this value to 0 for single node clusters or machines with less memory (16 GB or less). Set the value to 2 for production machines with la
+rge memory.</description>
+  </property>
+</configuration>
