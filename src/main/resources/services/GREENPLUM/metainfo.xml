@@ -71,7 +71,7 @@
           <osFamily>any</osFamily>
            <packages>
             <package>
-              <name>hawq</name>
+              <name>greenplum</name>
             </package>
           </packages>
         </osSpecific>
